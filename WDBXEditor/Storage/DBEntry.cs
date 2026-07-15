@@ -1,28 +1,29 @@
-﻿using WDBXEditor.Common;
-using WDBXEditor.Reader;
-using MySql.Data.MySqlClient;
-using WDBXEditor.Archives.MPQ;
+﻿using MySql.Data.MySqlClient;
+using Newtonsoft.Json;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Data;
-using System.IO;
-using System.Linq;
-using System.Text;
-using System.Windows.Forms;
-using static WDBXEditor.Common.Constants;
-using static WDBXEditor.Forms.InputBox;
-using WDBXEditor.Reader.FileTypes;
-using System.Text.RegularExpressions;
-using static WDBXEditor.Common.Extensions;
-using System.Threading.Tasks;
-using System.Collections.Concurrent;
-using Newtonsoft.Json;
 using System.Diagnostics;
-using System.Runtime.Serialization.Formatters.Binary;
+using System.Globalization;
+using System.IO;
 using System.IO.MemoryMappedFiles;
-using System.Security.AccessControl;
+using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
+using System.Runtime.Serialization.Formatters.Binary;
+using System.Security.AccessControl;
+using System.Text;
+using System.Text.RegularExpressions;
+using System.Threading.Tasks;
+using System.Windows.Forms;
+using WDBXEditor.Archives.MPQ;
+using WDBXEditor.Common;
+using WDBXEditor.Reader;
+using WDBXEditor.Reader.FileTypes;
+using static WDBXEditor.Common.Constants;
+using static WDBXEditor.Common.Extensions;
+using static WDBXEditor.Forms.InputBox;
 
 namespace WDBXEditor.Storage
 {
@@ -541,24 +542,70 @@ namespace WDBXEditor.Storage
         }
 
         /// <summary>
-        /// Generates a CSV file string
+        /// Generates a CSV file string optimized for Excel and WoW DBC structure
         /// </summary>
         /// <returns></returns>
         public string ToCSV()
         {
-            static string EncodeCsv(string s) { return string.Concat("\"", s.Replace(Environment.NewLine, string.Empty).Replace("\"", "\"\""), "\""); }
+            // Optimizamos pre-calculando un tamaño estimado para el StringBuilder.
+            // Esto evita que C# tenga que redimensionar la memoria continuamente mientras crece el texto.
+            // Estimación: Filas * (Columnas * 15 caracteres promedio)
+            int estimatedCapacity = Data.Rows.Count * Data.Columns.Count * 15;
+            StringBuilder sb = new(estimatedCapacity);
 
-            StringBuilder sb = new();
-            IEnumerable<string> columnNames = Data.Columns.Cast<DataColumn>().Select(column => EncodeCsv(column.ColumnName));
-            sb.AppendLine(string.Join(",", columnNames));
+            int columnCount = Data.Columns.Count;
 
+            // 1. Escribir las cabeceras (sin LINQ ni asignaciones innecesarias)
+            for (int i = 0; i < columnCount; i++)
+            {
+                sb.Append(EncodeCsv(Data.Columns[i].ColumnName));
+                if (i < columnCount - 1)
+                    sb.Append(',');
+            }
+            sb.AppendLine();
+
+            // 2. Escribir las filas extrayendo los datos directamente
             foreach (DataRow row in Data.Rows)
             {
-                IEnumerable<string> fields = row.ItemArray.Select(field => EncodeCsv(field.ToString()));
-                sb.AppendLine(string.Join(",", fields));
+                for (int i = 0; i < columnCount; i++)
+                {
+                    object value = row[i]; // Acceso directo por índice, sin clonar la fila
+
+                    // Convertimos el valor a string obligando a usar Cultura Invariante (punto para decimales)
+                    string strValue = Convert.ToString(value, CultureInfo.InvariantCulture) ?? string.Empty;
+
+                    sb.Append(EncodeCsv(strValue));
+
+                    if (i < columnCount - 1)
+                        sb.Append(',');
+                }
+                sb.AppendLine();
             }
 
             return sb.ToString();
+
+            // Función local modernizada, optimizada y blindada contra Excel
+            static string EncodeCsv(string s)
+            {
+                if (string.IsNullOrEmpty(s)) return "\"\"";
+
+                // NORMALIZACIÓN PARA EXCEL:
+                // Convertimos los saltos de línea "duros" de WoW (\r\n) a saltos "suaves" (\n).
+                // Esto evita que Excel rompa la fila y desparrame el texto hacia la columna ID.
+                string normalized = s.Replace("\r\n", "\n").Replace("\r", "\n");
+
+                // Evaluamos si necesita comillas basándonos en el texto ya normalizado
+                bool needsQuotes = normalized.Contains(',') || normalized.Contains('"') || normalized.Contains('\n');
+
+                if (needsQuotes)
+                {
+                    // Las comillas internas se escapan duplicándolas (estándar de Excel y CSV)
+                    return $"\"{normalized.Replace("\"", "\"\"")}\"";
+                }
+
+                // Si es un número o texto simple, lo devolvemos tal cual. Excel lo lee perfecto.
+                return normalized;
+            }
         }
 
         /// <summary>
@@ -648,17 +695,16 @@ namespace WDBXEditor.Storage
         {
             error = string.Empty;
 
-            DataTable importTable = Data.Clone(); //Clone table structure to help with mapping
+            DataTable importTable = Data.Clone(); // Clone table structure to help with mapping
 
             HashSet<int> usedids = [];
             int idcolumn = Data.Columns[Key].Ordinal;
             int maxid = int.MinValue;
-            _ = Path.GetDirectoryName(filename);
-            _ = Path.GetFileName(filename);
 
+            // Función Unescape ligeramente optimizada para .NET 8
             static string Unescape(string s)
             {
-                if (s.StartsWith('"') && s.EndsWith('"')) // CA1866: char en lugar de string
+                if (s.StartsWith('"') && s.EndsWith('"') && s.Length >= 2)
                 {
                     s = s[1..^1];
                     if (s.Contains("\"\""))
@@ -676,59 +722,83 @@ namespace WDBXEditor.Storage
                 while (!sr.EndOfStream)
                 {
                     string line = sr.ReadLine();
-                    string[] rows = CsvSplitRegex().Split(line); // SYSLIB1045: Usando el Regex Generado
+
+                    // SOLUCIÓN MULTI-LÍNEA: Si la línea tiene un número impar de comillas, 
+                    // significa que un texto con salto de línea quedó abierto. 
+                    // Seguimos leyendo y concatenando hasta que se cierren las comillas.
+                    while (line.Count(c => c == '"') % 2 != 0 && !sr.EndOfStream)
+                    {
+                        line += "\n" + sr.ReadLine();
+                    }
+
+                    string[] rows = CsvSplitRegex().Split(line);
+
+                    // Verificación de seguridad: ¿coinciden las columnas?
+                    if (rows.Length != Data.Columns.Count)
+                    {
+                        error = $"Import Failed: Row {usedids.Count + 1} has {rows.Length} columns, expected {Data.Columns.Count}.";
+                        return false;
+                    }
+
                     DataRow dr = importTable.NewRow();
 
                     for (int i = 0; i < Data.Columns.Count; i++)
                     {
                         string value = Unescape(rows[i]);
 
+                        // Si la celda está vacía, no intentamos convertirla (evita crasheos)
+                        if (string.IsNullOrEmpty(value) && Data.Columns[i].DataType != typeof(string))
+                        {
+                            value = "0";
+                        }
+
+                        // SOLUCIÓN DE CULTURA: InvariantCulture forzado en absolutamente todo
                         switch (Data.Columns[i].DataType.Name.ToLower())
                         {
                             case "sbyte":
-                                dr[i] = Convert.ToSByte(value);
+                                dr[i] = Convert.ToSByte(value, CultureInfo.InvariantCulture);
                                 break;
                             case "byte":
-                                dr[i] = Convert.ToByte(value);
+                                dr[i] = Convert.ToByte(value, CultureInfo.InvariantCulture);
                                 break;
                             case "int32":
                             case "int":
-                                dr[i] = Convert.ToInt32(value);
+                                dr[i] = Convert.ToInt32(value, CultureInfo.InvariantCulture);
                                 break;
                             case "uint32":
                             case "uint":
-                                dr[i] = Convert.ToUInt32(value);
+                                dr[i] = Convert.ToUInt32(value, CultureInfo.InvariantCulture);
                                 break;
                             case "int64":
                             case "long":
-                                dr[i] = Convert.ToInt64(value);
+                                dr[i] = Convert.ToInt64(value, CultureInfo.InvariantCulture);
                                 break;
                             case "uint64":
                             case "ulong":
-                                dr[i] = Convert.ToUInt64(value);
+                                dr[i] = Convert.ToUInt64(value, CultureInfo.InvariantCulture);
                                 break;
                             case "single":
                             case "float":
-                                dr[i] = Convert.ToSingle(value);
+                                dr[i] = Convert.ToSingle(value, CultureInfo.InvariantCulture);
                                 break;
                             case "boolean":
                             case "bool":
-                                dr[i] = Convert.ToBoolean(value);
+                                dr[i] = Convert.ToBoolean(value, CultureInfo.InvariantCulture);
                                 break;
                             case "string":
                                 dr[i] = value;
                                 break;
                             case "int16":
                             case "short":
-                                dr[i] = Convert.ToInt16(value);
+                                dr[i] = Convert.ToInt16(value, CultureInfo.InvariantCulture);
                                 break;
                             case "uint16":
                             case "ushort":
-                                dr[i] = Convert.ToUInt16(value);
+                                dr[i] = Convert.ToUInt16(value, CultureInfo.InvariantCulture);
                                 break;
                         }
 
-                        //Double check our Ids
+                        // Double check our Ids
                         if (i == idcolumn)
                         {
                             int id = (int)dr[i];
@@ -745,8 +815,8 @@ namespace WDBXEditor.Storage
                                 id = (int)dr[i];
                             }
 
-                            usedids.Add(id); //Add to list
-                            maxid = Math.Max(maxid, id); //Update maxid
+                            usedids.Add(id); // Add to list
+                            maxid = Math.Max(maxid, id); // Update maxid
                         }
                     }
 
@@ -755,7 +825,7 @@ namespace WDBXEditor.Storage
             }
             catch (FormatException)
             {
-                error = $"Mismatch of data to datatype in row index {usedids.Count + 1}";
+                error = $"Mismatch of data to datatype in row index {usedids.Count + 1}. Check numeric values.";
                 return false;
             }
             catch (Exception ex)
@@ -773,9 +843,6 @@ namespace WDBXEditor.Storage
                     error = "Import Failed: Imported data has an incorrect number of columns.";
                     return false;
             }
-
-            //if (!ValidateMinMaxValues(out error)) // Llamada actualizada a la firma corregida
-            //	return false;
 
             UpdateData(importTable, mode);
             return true;

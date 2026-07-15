@@ -25,43 +25,49 @@ namespace WDBXEditor
                 btnLoad.Enabled = true;
                 filePath = openFileDialog.FileName;
                 txtFilePath.Text = filePath;
-                openFileDialog.Dispose();
+                // Eliminamos openFileDialog.Dispose() para evitar bloqueos si el usuario busca 2 veces
             }
         }
 
-        private void BtnLoad_Click(object sender, EventArgs e)
+        private async void BtnLoad_Click(object sender, EventArgs e)
         {
-            ((Main)this.Owner).ProgressBarHandle(true, "Importing CSV...");
+            // Casteo seguro de la ventana principal
+            if (this.Owner is Main mainWindow)
+                mainWindow.ProgressBarHandle(true, "Importing CSV...");
+
             this.Enabled = false;
+
             bool header = chkHeader.Checked;
 
             ImportFlags flags = ImportFlags.None;
-            if (rdoFixIds.Checked)
-                flags |= ImportFlags.FixIds;
-            if (rdoNewest.Checked)
-                flags |= ImportFlags.TakeNewest;
+            if (rdoFixIds.Checked) flags |= ImportFlags.FixIds;
+            if (rdoNewest.Checked) flags |= ImportFlags.TakeNewest;
 
-            Task.Factory.StartNew(() =>
+            UpdateMode mode = UpdateMode.Insert;
+            if (radUpdate.Checked) mode = UpdateMode.Update;
+            else if (radOverride.Checked) mode = UpdateMode.Replace;
+
+            try
             {
-                UpdateMode mode = UpdateMode.Insert;
-                if (radUpdate.Checked)
-                    mode = UpdateMode.Update;
-                else if (radOverride.Checked)
-                    mode = UpdateMode.Replace;
+                // Usamos async/await para el trabajo pesado en segundo plano
+                DialogResult result = await Task.Run(() =>
+                {
+                    if (!Entry.ImportCSV(filePath, header, mode, out ErrorMessage, flags))
+                        return DialogResult.Abort;
 
-                if (!Entry.ImportCSV(filePath, header, mode, out ErrorMessage, flags))
-                    return DialogResult.Abort;
-                else
                     return DialogResult.OK;
-            })
-            .ContinueWith(x =>
-            {
-                this.Enabled = true;
-                this.DialogResult = x.Result;
+                });
+
+                this.DialogResult = result;
                 this.Close();
-
-            }, TaskScheduler.FromCurrentSynchronizationContext());
-
+            }
+            finally
+            {
+                // El bloque finally asegura que la UI siempre se desbloquee, incluso si algo falla catastróficamente
+                this.Enabled = true;
+                if (this.Owner is Main mainWin)
+                    mainWin.ProgressBarHandle(false);
+            }
         }
 
         private void BtnClose_Click(object sender, EventArgs e)

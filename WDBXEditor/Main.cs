@@ -686,34 +686,46 @@ namespace WDBXEditor
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private void ToCSVToolStripMenuItem_Click(object sender, EventArgs e)
+        private async void ToCSVToolStripMenuItem_Click(object sender, EventArgs e)
         {
             if (!IsLoaded) return;
 
-            using var sfd = new SaveFileDialog();
-            sfd.FileName = LoadedEntry.TableStructure.Name + ".csv";
-            sfd.Filter = "CSV files (*.csv)|*.csv|Text files (*.txt)|*.txt";
+            using var sfd = new SaveFileDialog
+            {
+                FileName = $"{LoadedEntry.TableStructure.Name}.csv",
+                Filter = "CSV files (*.csv)|*.csv|Text files (*.txt)|*.txt"
+            };
 
             if (sfd.ShowDialog(this) == DialogResult.OK)
             {
-                ProgressBarHandle(true, "Exporting to CSV...");
-                Task.Factory.StartNew(() =>
+                try
                 {
-                    using FileStream fs = new(sfd.FileName, FileMode.Create);
-                    string sql = LoadedEntry.ToCSV();
-                    byte[] data = Encoding.UTF8.GetBytes(sql);
-                    fs.Write(data, 0, data.Length);
-                })
-                .ContinueWith(x =>
+                    ProgressBarHandle(true, "Exporting to CSV...");
+
+                    // Usamos Task.Run para enviar el trabajo pesado a un hilo secundario sin congelar la UI
+                    await Task.Run(async () =>
+                    {
+                        // Obtenemos los datos
+                        string csvData = LoadedEntry.ToCSV();
+
+                        // En .NET 8, WriteAllTextAsync maneja el FileStream y el Encoding UTF-8 (con BOM) 
+                        // internamente de forma ultra optimizada, sin necesidad de crear arreglos de bytes manuales.
+                        await File.WriteAllTextAsync(sfd.FileName, csvData, Encoding.UTF8);
+                    });
+
+                    MessageBox.Show($"File successfully exported to {sfd.FileName}");
+                }
+                catch (Exception ex)
                 {
+                    // Gracias a async/await, 'ex' es la excepción real (ej. IOException), no un AggregateException.
+                    MessageBox.Show($"Error generating CSV file: {ex.Message}");
+                }
+                finally
+                {
+                    // El bloque finally asegura que la barra de progreso siempre se oculte, 
+                    // incluso si ocurre un error inesperado.
                     ProgressBarHandle(false);
-
-                    if (x.IsFaulted)
-                        MessageBox.Show($"Error generating CSV file {x.Exception.Message}");
-                    else
-                        MessageBox.Show($"File successfully exported to {sfd.FileName}");
-
-                }, TaskScheduler.FromCurrentSynchronizationContext());
+                }
             }
         }
 
