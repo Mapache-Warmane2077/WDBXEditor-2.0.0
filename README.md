@@ -32,4 +32,4 @@ Si deseas compilar el proyecto por ti mismo:
 ## 📜 Créditos
 
 * Proyecto original creado por [WowDevTools](https://github.com/WowDevTools/WDBXEditor).
-* Migración a .NET 8.0 y optimización por [Mapache-Warmane2077].
+* Migración a .NET 8.0 y optimización por @Mapache-Warmane2077.
