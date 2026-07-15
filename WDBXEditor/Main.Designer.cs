@@ -96,6 +96,16 @@ namespace WDBXEditor
             helpToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             helpToolStripMenuItem1 = new System.Windows.Forms.ToolStripMenuItem();
             aboutToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            idiomaToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            EspañolToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            EnglishToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            PortuguêsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            FrançaisToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            DeutschToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            PусскийToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            ItalianoToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            中文ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            한국어ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             openFileDialog = new System.Windows.Forms.OpenFileDialog();
             label3 = new System.Windows.Forms.Label();
             contextMenuStrip = new System.Windows.Forms.ContextMenuStrip(components);
@@ -112,6 +122,7 @@ namespace WDBXEditor
             cbColumnMode = new System.Windows.Forms.ComboBox();
             label8 = new System.Windows.Forms.Label();
             columnFilter = new DropdownCheckList();
+            darkModeToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             gbFiles.SuspendLayout();
             gbFilter.SuspendLayout();
             filecontextMenuStrip.SuspendLayout();
@@ -130,7 +141,7 @@ namespace WDBXEditor
             gbFiles.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
             gbFiles.Name = "gbFiles";
             gbFiles.Padding = new System.Windows.Forms.Padding(4, 3, 4, 3);
-            gbFiles.Size = new System.Drawing.Size(798, 227);
+            gbFiles.Size = new System.Drawing.Size(821, 227);
             gbFiles.TabIndex = 1;
             gbFiles.TabStop = false;
             gbFiles.Text = "Files";
@@ -143,11 +154,11 @@ namespace WDBXEditor
             gbFilter.Controls.Add(label6);
             gbFilter.Controls.Add(txtFilter);
             gbFilter.Controls.Add(label7);
-            gbFilter.Location = new System.Drawing.Point(532, 22);
+            gbFilter.Location = new System.Drawing.Point(490, 22);
             gbFilter.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
             gbFilter.Name = "gbFilter";
             gbFilter.Padding = new System.Windows.Forms.Padding(4, 3, 4, 3);
-            gbFilter.Size = new System.Drawing.Size(259, 198);
+            gbFilter.Size = new System.Drawing.Size(302, 198);
             gbFilter.TabIndex = 10;
             gbFilter.TabStop = false;
             gbFilter.Text = "Filter";
@@ -155,10 +166,10 @@ namespace WDBXEditor
             // btnReset
             // 
             btnReset.Anchor = System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right;
-            btnReset.Location = new System.Drawing.Point(170, 83);
+            btnReset.Location = new System.Drawing.Point(157, 80);
             btnReset.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
             btnReset.Name = "btnReset";
-            btnReset.Size = new System.Drawing.Size(82, 27);
+            btnReset.Size = new System.Drawing.Size(137, 27);
             btnReset.TabIndex = 9;
             btnReset.Text = "Reset";
             btnReset.UseVisualStyleBackColor = true;
@@ -168,7 +179,7 @@ namespace WDBXEditor
             // 
             cbBuild.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
             cbBuild.FormattingEnabled = true;
-            cbBuild.Location = new System.Drawing.Point(55, 52);
+            cbBuild.Location = new System.Drawing.Point(98, 51);
             cbBuild.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
             cbBuild.Name = "cbBuild";
             cbBuild.Size = new System.Drawing.Size(196, 23);
@@ -187,7 +198,7 @@ namespace WDBXEditor
             // 
             // txtFilter
             // 
-            txtFilter.Location = new System.Drawing.Point(55, 22);
+            txtFilter.Location = new System.Drawing.Point(98, 22);
             txtFilter.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
             txtFilter.Name = "txtFilter";
             txtFilter.Size = new System.Drawing.Size(196, 23);
@@ -212,7 +223,7 @@ namespace WDBXEditor
             lbFiles.Location = new System.Drawing.Point(7, 22);
             lbFiles.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
             lbFiles.Name = "lbFiles";
-            lbFiles.Size = new System.Drawing.Size(517, 199);
+            lbFiles.Size = new System.Drawing.Size(459, 199);
             lbFiles.Sorted = true;
             lbFiles.TabIndex = 1;
             lbFiles.MouseDoubleClick += LbFiles_MouseDoubleClick;
@@ -253,11 +264,11 @@ namespace WDBXEditor
             gbSettings.Controls.Add(txtCurEntry);
             gbSettings.Controls.Add(label2);
             gbSettings.Controls.Add(label1);
-            gbSettings.Location = new System.Drawing.Point(819, 452);
+            gbSettings.Location = new System.Drawing.Point(828, 452);
             gbSettings.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
             gbSettings.Name = "gbSettings";
             gbSettings.Padding = new System.Windows.Forms.Padding(4, 3, 4, 3);
-            gbSettings.Size = new System.Drawing.Size(268, 227);
+            gbSettings.Size = new System.Drawing.Size(298, 227);
             gbSettings.TabIndex = 2;
             gbSettings.TabStop = false;
             gbSettings.Text = "Statistics";
@@ -283,7 +294,7 @@ namespace WDBXEditor
             // 
             // txtStats
             // 
-            txtStats.Location = new System.Drawing.Point(89, 112);
+            txtStats.Location = new System.Drawing.Point(110, 112);
             txtStats.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
             txtStats.Name = "txtStats";
             txtStats.ReadOnly = true;
@@ -302,7 +313,7 @@ namespace WDBXEditor
             // 
             // txtCurrentCell
             // 
-            txtCurrentCell.Location = new System.Drawing.Point(89, 82);
+            txtCurrentCell.Location = new System.Drawing.Point(110, 83);
             txtCurrentCell.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
             txtCurrentCell.Name = "txtCurrentCell";
             txtCurrentCell.ReadOnly = true;
@@ -321,7 +332,7 @@ namespace WDBXEditor
             // 
             // txtCurDefinition
             // 
-            txtCurDefinition.Location = new System.Drawing.Point(89, 52);
+            txtCurDefinition.Location = new System.Drawing.Point(110, 51);
             txtCurDefinition.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
             txtCurDefinition.Name = "txtCurDefinition";
             txtCurDefinition.ReadOnly = true;
@@ -330,7 +341,7 @@ namespace WDBXEditor
             // 
             // txtCurEntry
             // 
-            txtCurEntry.Location = new System.Drawing.Point(89, 22);
+            txtCurEntry.Location = new System.Drawing.Point(110, 22);
             txtCurEntry.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
             txtCurEntry.Name = "txtCurEntry";
             txtCurEntry.ReadOnly = true;
@@ -363,7 +374,7 @@ namespace WDBXEditor
             menuStrip.Location = new System.Drawing.Point(0, 0);
             menuStrip.Name = "menuStrip";
             menuStrip.Padding = new System.Windows.Forms.Padding(7, 2, 0, 2);
-            menuStrip.Size = new System.Drawing.Size(1101, 24);
+            menuStrip.Size = new System.Drawing.Size(1140, 24);
             menuStrip.TabIndex = 3;
             menuStrip.Text = "menuStrip1";
             // 
@@ -662,24 +673,94 @@ namespace WDBXEditor
             // 
             // helpToolStripMenuItem
             // 
-            helpToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] { helpToolStripMenuItem1, aboutToolStripMenuItem });
+            helpToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] { helpToolStripMenuItem1, aboutToolStripMenuItem, idiomaToolStripMenuItem, darkModeToolStripMenuItem });
             helpToolStripMenuItem.Name = "helpToolStripMenuItem";
-            helpToolStripMenuItem.Size = new System.Drawing.Size(44, 20);
-            helpToolStripMenuItem.Text = "Help";
+            helpToolStripMenuItem.Size = new System.Drawing.Size(61, 20);
+            helpToolStripMenuItem.Text = "Settings";
             // 
             // helpToolStripMenuItem1
             // 
             helpToolStripMenuItem1.Name = "helpToolStripMenuItem1";
-            helpToolStripMenuItem1.Size = new System.Drawing.Size(107, 22);
+            helpToolStripMenuItem1.Size = new System.Drawing.Size(180, 22);
             helpToolStripMenuItem1.Text = "Help";
             helpToolStripMenuItem1.Click += HelpToolStripMenuItem1_Click;
             // 
             // aboutToolStripMenuItem
             // 
             aboutToolStripMenuItem.Name = "aboutToolStripMenuItem";
-            aboutToolStripMenuItem.Size = new System.Drawing.Size(107, 22);
+            aboutToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
             aboutToolStripMenuItem.Text = "About";
             aboutToolStripMenuItem.Click += AboutToolStripMenuItem_Click;
+            // 
+            // idiomaToolStripMenuItem
+            // 
+            idiomaToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] { EspañolToolStripMenuItem, EnglishToolStripMenuItem, PortuguêsToolStripMenuItem, FrançaisToolStripMenuItem, DeutschToolStripMenuItem, PусскийToolStripMenuItem, ItalianoToolStripMenuItem, 中文ToolStripMenuItem, 한국어ToolStripMenuItem });
+            idiomaToolStripMenuItem.Name = "idiomaToolStripMenuItem";
+            idiomaToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            idiomaToolStripMenuItem.Text = "Language";
+            // 
+            // EspañolToolStripMenuItem
+            // 
+            EspañolToolStripMenuItem.Name = "EspañolToolStripMenuItem";
+            EspañolToolStripMenuItem.Size = new System.Drawing.Size(128, 22);
+            EspañolToolStripMenuItem.Text = "Español";
+            EspañolToolStripMenuItem.Click += EspañolToolStripMenuItem_Click;
+            // 
+            // EnglishToolStripMenuItem
+            // 
+            EnglishToolStripMenuItem.Name = "EnglishToolStripMenuItem";
+            EnglishToolStripMenuItem.Size = new System.Drawing.Size(128, 22);
+            EnglishToolStripMenuItem.Text = "English";
+            EnglishToolStripMenuItem.Click += EnglishToolStripMenuItem_Click;
+            // 
+            // PortuguêsToolStripMenuItem
+            // 
+            PortuguêsToolStripMenuItem.Name = "PortuguêsToolStripMenuItem";
+            PortuguêsToolStripMenuItem.Size = new System.Drawing.Size(128, 22);
+            PortuguêsToolStripMenuItem.Text = "Português";
+            PortuguêsToolStripMenuItem.Click += PortuguêsToolStripMenuItem_Click;
+            // 
+            // FrançaisToolStripMenuItem
+            // 
+            FrançaisToolStripMenuItem.Name = "FrançaisToolStripMenuItem";
+            FrançaisToolStripMenuItem.Size = new System.Drawing.Size(128, 22);
+            FrançaisToolStripMenuItem.Text = "Français";
+            FrançaisToolStripMenuItem.Click += FrançaisToolStripMenuItem_Click;
+            // 
+            // DeutschToolStripMenuItem
+            // 
+            DeutschToolStripMenuItem.Name = "DeutschToolStripMenuItem";
+            DeutschToolStripMenuItem.Size = new System.Drawing.Size(128, 22);
+            DeutschToolStripMenuItem.Text = "Deutsch";
+            DeutschToolStripMenuItem.Click += DeutschToolStripMenuItem_Click;
+            // 
+            // PусскийToolStripMenuItem
+            // 
+            PусскийToolStripMenuItem.Name = "PусскийToolStripMenuItem";
+            PусскийToolStripMenuItem.Size = new System.Drawing.Size(128, 22);
+            PусскийToolStripMenuItem.Text = "Pусский";
+            PусскийToolStripMenuItem.Click += PусскийToolStripMenuItem_Click;
+            // 
+            // ItalianoToolStripMenuItem
+            // 
+            ItalianoToolStripMenuItem.Name = "ItalianoToolStripMenuItem";
+            ItalianoToolStripMenuItem.Size = new System.Drawing.Size(128, 22);
+            ItalianoToolStripMenuItem.Text = "Italiano";
+            ItalianoToolStripMenuItem.Click += ItalianoToolStripMenuItem_Click;
+            // 
+            // 中文ToolStripMenuItem
+            // 
+            中文ToolStripMenuItem.Name = "中文ToolStripMenuItem";
+            中文ToolStripMenuItem.Size = new System.Drawing.Size(128, 22);
+            中文ToolStripMenuItem.Text = "中文";
+            中文ToolStripMenuItem.Click += 中文ToolStripMenuItem_Click;
+            // 
+            // 한국어ToolStripMenuItem
+            // 
+            한국어ToolStripMenuItem.Name = "한국어ToolStripMenuItem";
+            한국어ToolStripMenuItem.Size = new System.Drawing.Size(128, 22);
+            한국어ToolStripMenuItem.Text = "한국어";
+            한국어ToolStripMenuItem.Click += 한국어ToolStripMenuItem_Click;
             // 
             // openFileDialog
             // 
@@ -689,7 +770,7 @@ namespace WDBXEditor
             // label3
             // 
             label3.AutoSize = true;
-            label3.Location = new System.Drawing.Point(700, 8);
+            label3.Location = new System.Drawing.Point(760, 4);
             label3.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             label3.Name = "label3";
             label3.Size = new System.Drawing.Size(58, 15);
@@ -777,7 +858,7 @@ namespace WDBXEditor
             advancedDataGridView.Name = "advancedDataGridView";
             advancedDataGridView.RowHeadersWidthSizeMode = System.Windows.Forms.DataGridViewRowHeadersWidthSizeMode.DisableResizing;
             advancedDataGridView.RowTemplate.Height = 18;
-            advancedDataGridView.Size = new System.Drawing.Size(1073, 414);
+            advancedDataGridView.Size = new System.Drawing.Size(1112, 414);
             advancedDataGridView.TabIndex = 0;
             advancedDataGridView.SortStringChanged += AdvancedDataGridView_SortStringChanged;
             advancedDataGridView.FilterStringChanged += AdvancedDataGridView_FilterStringChanged;
@@ -795,7 +876,7 @@ namespace WDBXEditor
             // 
             cbColumnMode.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
             cbColumnMode.FormattingEnabled = true;
-            cbColumnMode.Location = new System.Drawing.Point(504, 3);
+            cbColumnMode.Location = new System.Drawing.Point(540, 2);
             cbColumnMode.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
             cbColumnMode.Name = "cbColumnMode";
             cbColumnMode.Size = new System.Drawing.Size(192, 23);
@@ -805,7 +886,7 @@ namespace WDBXEditor
             // label8
             // 
             label8.AutoSize = true;
-            label8.Location = new System.Drawing.Point(404, 8);
+            label8.Location = new System.Drawing.Point(425, 4);
             label8.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             label8.Name = "label8";
             label8.Size = new System.Drawing.Size(92, 15);
@@ -816,20 +897,27 @@ namespace WDBXEditor
             // 
             columnFilter.Anchor = System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left | System.Windows.Forms.AnchorStyles.Right;
             columnFilter.ListHeight = 200;
-            columnFilter.Location = new System.Drawing.Point(765, 3);
+            columnFilter.Location = new System.Drawing.Point(835, 2);
             columnFilter.Margin = new System.Windows.Forms.Padding(5, 3, 5, 3);
             columnFilter.Name = "columnFilter";
-            columnFilter.Size = new System.Drawing.Size(322, 24);
+            columnFilter.Size = new System.Drawing.Size(291, 24);
             columnFilter.TabIndex = 8;
             columnFilter.TabStop = false;
             columnFilter.ItemCheckChanged += ColumnFilter_ItemCheckChanged;
             columnFilter.HideEmptyPressed += ColumnFilter_HideEmptyPressed;
             // 
+            // darkModeToolStripMenuItem
+            // 
+            darkModeToolStripMenuItem.Name = "darkModeToolStripMenuItem";
+            darkModeToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            darkModeToolStripMenuItem.Text = "Dark Mode";
+            darkModeToolStripMenuItem.Click += DarkModeToolStripMenuItem_Click;
+            // 
             // Main
             // 
             AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
             AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            ClientSize = new System.Drawing.Size(1101, 693);
+            ClientSize = new System.Drawing.Size(1140, 693);
             Controls.Add(label8);
             Controls.Add(cbColumnMode);
             Controls.Add(label3);
@@ -937,12 +1025,23 @@ namespace WDBXEditor
         private System.Windows.Forms.ToolStripMenuItem toJSONToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem playerLocationRecorderToolStripMenuItem;
         private System.Windows.Forms.ComboBox cbColumnMode;
-        private System.Windows.Forms.Label label8;
         private System.Windows.Forms.ToolStripMenuItem colourPickerToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem viewInEditorToolStripMenuItem;
         private System.Windows.Forms.ToolStripSeparator toolStripSeparator5;
         private System.Windows.Forms.Label lblCurrentProcess;
 		private System.Windows.Forms.ToolStripMenuItem recentToolStripMenuItem;
-	}
+        private System.Windows.Forms.ToolStripMenuItem idiomaToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem EspañolToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem EnglishToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem PortuguêsToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem FrançaisToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem DeutschToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem PусскийToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem ItalianoToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem 中文ToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem 한국어ToolStripMenuItem;
+        private System.Windows.Forms.Label label8;
+        private System.Windows.Forms.ToolStripMenuItem darkModeToolStripMenuItem;
+    }
 }
 

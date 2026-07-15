@@ -29,23 +29,52 @@ namespace WDBXEditor
         /// <param name="args"></param>
         public static void InstanceCheck(string[] args)
         {
+            // Extraemos el comodín oculto si existe
+            bool forceNew = false;
+            List<string> cleanArgs = [];
+
+            if (args != null)
+            {
+                foreach (string arg in args)
+                {
+                    if (arg.Equals("-force", StringComparison.OrdinalIgnoreCase))
+                        forceNew = true;
+                    else
+                        cleanArgs.Add(arg);
+                }
+            }
+            args = [.. cleanArgs];
+
             static bool ArgCheck(string[] a) => a != null && a.Length > 0 && File.Exists(a[0]);
             bool isOnlyInstance = false;
 
             if (ArgCheck(args) || args.Length == 0)
             {
                 mutex = new Mutex(true, "WDBXEditorMutex", out isOnlyInstance);
-                if (!isOnlyInstance)
+
+                if (forceNew)
                 {
-                    Program.PrimaryInstance = false;
-                    SendData(args); //Send args to the primary instance
+                    // Entra por el comodín: Forzamos nueva ventana
+                    Program.PrimaryInstance = true;
                 }
-                else
+                else if (!isOnlyInstance && ArgCheck(args))
+                {
+                    // YA NO PREGUNTAMOS AQUÍ. 
+                    // Simplemente le enviamos los datos a la ventana principal para que ella decida.
+                    Program.PrimaryInstance = false;
+                    SendData(args);
+                    return;
+                }
+                else if (isOnlyInstance)
                 {
                     Program.PrimaryInstance = true;
                     pipeServer = new NamedPipeManager();
                     pipeServer.ReceiveString += OpenRequest;
                     pipeServer.StartServer();
+                }
+                else
+                {
+                    Program.PrimaryInstance = true;
                 }
             }
         }

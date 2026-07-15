@@ -11,7 +11,6 @@ using System.Windows.Forms;
 
 namespace AdvancedDataGridView
 {
-
     [System.ComponentModel.DesignerCategory("")]
     public partial class AdvancedDataGridView : DataGridView
     {
@@ -60,6 +59,7 @@ namespace AdvancedDataGridView
         private string sortString = string.Empty;
         private string filterString = string.Empty;
         private object[] _copydata;
+        private static readonly string[] SeparadoresLinea = ["\r\n", "\n", "\r"];
         private bool isCutOperation = false;
 
         // Se cambió el nombre para que inicie con mayúscula.
@@ -470,7 +470,7 @@ namespace AdvancedDataGridView
             if (keyData == (Keys.Control | Keys.C))
             {
                 isCutOperation = false;
-                return base.ProcessCmdKey(ref msg, keyData); // Dejamos que haga su copia normal
+                return base.ProcessCmdKey(ref msg, keyData);
             }
             // Ctrl + X: Cortar
             else if (keyData == (Keys.Control | Keys.X))
@@ -478,7 +478,7 @@ namespace AdvancedDataGridView
                 CortarCeldas();
                 return true;
             }
-            // Ctrl + D: Duplicar fila entera (estilo base de datos)
+            // Ctrl + D: Duplicar fila entera
             else if (keyData == (Keys.Control | Keys.D))
             {
                 DuplicarFila();
@@ -492,6 +492,16 @@ namespace AdvancedDataGridView
 
                 PegarEstiloExcel();
                 return true;
+            }
+            // NUEVO - Suprimir: Borrar el contenido de las celdas seleccionadas
+            else if (keyData == Keys.Delete)
+            {
+                // Si el usuario está editando el texto por dentro de la celda, dejamos que el Suprimir funcione normal
+                if (this.IsCurrentCellInEditMode)
+                    return base.ProcessCmdKey(ref msg, keyData);
+
+                BorrarCeldasSeleccionadas();
+                return true; // Indicamos que ya procesamos la tecla
             }
 
             return base.ProcessCmdKey(ref msg, keyData);
@@ -536,6 +546,40 @@ namespace AdvancedDataGridView
             }
         }
 
+        private void BorrarCeldasSeleccionadas()
+        {
+            if (this.SelectedCells.Count == 0) return;
+
+            // Recorremos todas las celdas sombreadas
+            foreach (DataGridViewCell cell in this.SelectedCells)
+            {
+                // Evitamos intentar borrar la llave primaria (ID) si está protegida o es de solo lectura
+                if (!cell.ReadOnly && !cell.OwningColumn.ReadOnly)
+                {
+                    Type type = cell.ValueType;
+
+                    // Asignamos el valor por defecto compatible con WoW
+                    if (type == typeof(string))
+                    {
+                        cell.Value = string.Empty; // Textos quedan vacíos ""
+                    }
+                    else if (type == typeof(bool))
+                    {
+                        cell.Value = false; // Booleanos quedan en false
+                    }
+                    else if (type != null && type.IsValueType)
+                    {
+                        // Los números (int, float, uint) quedarán en 0 según su tipo exacto
+                        cell.Value = Activator.CreateInstance(type);
+                    }
+                    else
+                    {
+                        cell.Value = DBNull.Value; // Solo como precaución final
+                    }
+                }
+            }
+        }
+
         private void DuplicarFila()
         {
             if (this.CurrentRow == null || this.CurrentRow.IsNewRow) return;
@@ -548,7 +592,7 @@ namespace AdvancedDataGridView
 
                 // Obtener datos de la fila original
                 DataRowView currentRowView = this.CurrentRow.DataBoundItem as DataRowView;
-                if (currentRowView == null) return;
+                if (currentRowView != null) return;
                 DataRow currentRow = currentRowView.Row;
 
                 DataRow newRow = dt.NewRow();
@@ -602,8 +646,8 @@ namespace AdvancedDataGridView
             string textoPortapapeles = Clipboard.GetText();
             if (string.IsNullOrEmpty(textoPortapapeles)) return;
 
-            // Dividir filas por salto de línea
-            string[] filas = textoPortapapeles.Split(new[] { "\r\n", "\n", "\r" }, StringSplitOptions.None);
+            // AQUÍ es donde aplicamos la optimización de los separadores:
+            string[] filas = textoPortapapeles.Split(SeparadoresLinea, StringSplitOptions.None);
 
             int filaInicial = this.CurrentCell.RowIndex;
             int colInicial = this.CurrentCell.ColumnIndex;
@@ -642,7 +686,8 @@ namespace AdvancedDataGridView
                             string tag = celdaDestino.OwningColumn.DefaultCellStyle.Tag?.ToString() ?? "";
                             if (tag.StartsWith('X') && celdasTexto[j].StartsWith("0x"))
                             {
-                                string hexVal = celdasTexto[j].Substring(2);
+                                // IDE0057: Simplificado usando el operador de rango [inicio..fin]
+                                string hexVal = celdasTexto[j][2..];
                                 if (long.TryParse(hexVal, NumberStyles.HexNumber, null, out long l))
                                     celdaDestino.Value = Convert.ChangeType(l, celdaDestino.ValueType);
                             }

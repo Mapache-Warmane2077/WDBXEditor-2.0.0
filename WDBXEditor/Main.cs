@@ -36,6 +36,9 @@ namespace WDBXEditor
 
             _bindingsource.DataSource = null;
             advancedDataGridView.DataSource = _bindingsource;
+
+            LanguageManager.TraducirControles(this);
+            ActualizarPalomita();
         }
 
         public Main(string[] filenames)
@@ -46,6 +49,9 @@ namespace WDBXEditor
             advancedDataGridView.DataSource = _bindingsource;
 
             Parallel.For(0, filenames.Length, f => InstanceManager.AutoRun.Enqueue(filenames[f]));
+
+            LanguageManager.TraducirControles(this);
+            ActualizarPalomita();
         }
 
         private void Main_Load(object sender, EventArgs e)
@@ -53,6 +59,11 @@ namespace WDBXEditor
 #if DEBUG
             wdb5ParserToolStripMenuItem.Visible = true;
 #endif
+
+            bool modoOscuroActivo = Properties.Settings.Default.DarkModeEnabled;
+            ThemeManager.ApplyTheme(this, modoOscuroActivo);
+            // Correcto: Referencia directa al botón del menú
+            darkModeToolStripMenuItem.Checked = modoOscuroActivo;
 
             //Create temp directory
             if (!Directory.Exists(TEMP_FOLDER))
@@ -99,8 +110,17 @@ namespace WDBXEditor
         private void Main_FormClosing(object sender, FormClosingEventArgs e)
         {
             if (Database.Entries.Any(x => x.Changed))
-                if (MessageBox.Show("You have unsaved changes. Do you wish to exit?", "Unsaved Changes", MessageBoxButtons.YesNo) == DialogResult.No)
+            {
+                // Obtenemos los textos traducidos
+                string cuerpoMensaje = LanguageManager.ObtenerTexto("msgCambiosSinGuardarCuerpo", "Tienes cambios sin guardar. ¿Deseas salir?");
+                string tituloMensaje = LanguageManager.ObtenerTexto("msgCambiosSinGuardarTitulo", "Cambios sin guardar");
+
+                // Mostramos el MessageBox
+                if (MessageBox.Show(cuerpoMensaje, tituloMensaje, MessageBoxButtons.YesNo, MessageBoxIcon.Warning) == DialogResult.No)
+                {
                     e.Cancel = true;
+                }
+            }
 
             if (!e.Cancel)
             {
@@ -1356,10 +1376,77 @@ namespace WDBXEditor
         {
             if (InstanceManager.AutoRun.Any(x => File.Exists(x)))
             {
-                //Dequeue all stored files
                 IEnumerable<string> filenames = InstanceManager.GetFilesToOpen();
 
-                //See if we can use an existing LoadDefinition
+                // --- NUEVA LÓGICA AUTOMÁTICA ---
+                List<string> archivosNuevos = [];
+
+                // 1. Separamos los duplicados de los nuevos silenciosamente
+                foreach (string rutaArchivo in filenames)
+                {
+                    string nombreArchivoNuevo = Path.GetFileName(rutaArchivo);
+                    bool estaAbierto = Database.Entries.Any(e => Path.GetFileName(e.FileName).Equals(nombreArchivoNuevo, StringComparison.OrdinalIgnoreCase));
+
+                    if (estaAbierto)
+                    {
+                        // ¡MODO AUTOMÁTICO! Es duplicado, lo mandamos a una ventana nueva sin preguntar
+                        System.Diagnostics.Process.Start(Application.ExecutablePath, $"\"{rutaArchivo}\" -force");
+                    }
+                    else
+                    {
+                        // No es duplicado, lo guardamos para preguntar
+                        archivosNuevos.Add(rutaArchivo);
+                    }
+                }
+
+                // 2. Si hay archivos nuevos válidos, hacemos la pregunta
+                if (archivosNuevos.Count > 0)
+                {
+                    // NUEVO FILTRO: ¿La ventana ya tiene otras tablas cargadas?
+                    // Si Database.Entries.Any() es falso, la ventana está vacía y se salta la pregunta.
+                    if (Database.Entries.Count > 0)
+                    {
+                        // Obtenemos los textos traducidos
+                        string cuerpoMensaje = LanguageManager.ObtenerTexto("msgAcoplarArchivosCuerpo", "¿Deseas acoplar los archivos a esta ventana?\n\n SI = Acoplar en pestaña\n NO = Abrir en nueva ventana");
+                        string tituloMensaje = LanguageManager.ObtenerTexto("msgAcoplarArchivosTitulo", "Acoplar archivo(s) DBC");
+                        DialogResult result = MessageBox.Show(
+                            cuerpoMensaje,
+                            tituloMensaje,
+                            MessageBoxButtons.YesNo,
+                            MessageBoxIcon.Question
+                        );
+
+                        if (result == DialogResult.Yes)
+                        {
+                            filenames = archivosNuevos;
+                        }
+                        else
+                        {
+                            foreach (string ruta in archivosNuevos)
+                            {
+                                System.Diagnostics.Process.Start(Application.ExecutablePath, $"\"{ruta}\" -force");
+                            }
+                            filenames = [];
+                        }
+                    }
+                    else
+                    {
+                        // La ventana está vacía (se acaba de abrir o es una forzada por duplicado)
+                        // Carga el archivo directamente sin preguntar nada.
+                        filenames = archivosNuevos;
+                    }
+                }
+                else
+                {
+                    filenames = [];
+                }
+
+                // Si la lista quedó vacía, detenemos la ejecución
+                if (!filenames.Any()) return;
+                // --- FIN NUEVA LÓGICA AUTOMÁTICA ---
+
+
+                // See if we can use an existing LoadDefinition
                 var loaddef = FormHandler.GetForm<LoadDefinition>();
                 if (loaddef != null)
                 {
@@ -1367,7 +1454,7 @@ namespace WDBXEditor
                     return;
                 }
 
-                //Load definition picker
+                // Load definition picker
                 using (var loaddefs = new LoadDefinition())
                 {
                     loaddefs.Files = filenames;
@@ -1377,7 +1464,7 @@ namespace WDBXEditor
                         filenames = loaddefs.Files;
                 }
 
-                //Load the files
+                // Load the files
                 ProgressBarHandle(true, "Loading files...");
                 Task.Run(() => Database.LoadFiles(filenames))
                 .ContinueWith(x =>
@@ -1448,6 +1535,97 @@ namespace WDBXEditor
             Properties.Settings.Default.RecentFiles.AddRange([.. recentFiles]);
 
             LoadRecentList();
+        }
+
+        private void EspañolToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            LanguageManager.CambiarIdioma("es", this);
+            ActualizarPalomita();
+        }
+
+        private void EnglishToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            LanguageManager.CambiarIdioma("en", this);
+            ActualizarPalomita();
+        }
+
+        private void PortuguêsToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            LanguageManager.CambiarIdioma("pt", this);
+            ActualizarPalomita();
+        }
+
+        private void FrançaisToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            LanguageManager.CambiarIdioma("fr", this);
+            ActualizarPalomita();
+        }
+
+        private void DeutschToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            LanguageManager.CambiarIdioma("de", this);
+            ActualizarPalomita();
+        }
+
+        private void PусскийToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            LanguageManager.CambiarIdioma("ru", this);
+            ActualizarPalomita();
+        }
+
+        private void ItalianoToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            LanguageManager.CambiarIdioma("it", this);
+            ActualizarPalomita();
+        }
+
+        private void 中文ToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            LanguageManager.CambiarIdioma("zh", this);
+            ActualizarPalomita();
+        }
+
+        private void 한국어ToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            LanguageManager.CambiarIdioma("ko", this);
+            ActualizarPalomita();
+        }
+        private void ActualizarPalomita()
+        {
+            // 1. Desmarcamos todos los botones dentro del menú de idiomas
+            foreach (ToolStripMenuItem item in idiomaToolStripMenuItem.DropDownItems)
+            {
+                item.Checked = false;
+            }
+
+            // 2. Le ponemos la paloma solo al idioma activo actual
+            switch (LanguageManager.IdiomaActual)
+            {
+                case "es": EspañolToolStripMenuItem.Checked = true; break;
+                case "en": EnglishToolStripMenuItem.Checked = true; break;
+                case "pt": PortuguêsToolStripMenuItem.Checked = true; break;
+                case "fr": FrançaisToolStripMenuItem.Checked = true; break;
+                case "de": DeutschToolStripMenuItem.Checked = true; break;
+                case "ru": PусскийToolStripMenuItem.Checked = true; break;
+                case "zh": 中文ToolStripMenuItem.Checked = true; break;
+                case "ko": 한국어ToolStripMenuItem.Checked = true; break;
+                case "it": ItalianoToolStripMenuItem.Checked = true; break;
+            }
+        }
+
+        private void DarkModeToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            bool nuevoEstado = !Properties.Settings.Default.DarkModeEnabled;
+            Properties.Settings.Default.DarkModeEnabled = nuevoEstado;
+            Properties.Settings.Default.Save();
+
+            ThemeManager.ApplyTheme(this, nuevoEstado);
+
+            // Esto le pone una "palomita" o check visual al menú cuando está activo
+            if (sender is ToolStripMenuItem menuItem)
+            {
+                menuItem.Checked = nuevoEstado;
+            }
         }
     }
 }
