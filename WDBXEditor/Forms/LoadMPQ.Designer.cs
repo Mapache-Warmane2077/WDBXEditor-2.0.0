@@ -68,7 +68,7 @@ namespace WDBXEditor
 			this.btnParse.TabIndex = 9;
 			this.btnParse.Text = "Load";
 			this.btnParse.UseVisualStyleBackColor = true;
-			this.btnParse.Click += new System.EventHandler(this.btnParse_Click);
+			this.btnParse.Click += new System.EventHandler(this.BtnParse_Click);
 			// 
 			// txtFilePath
 			// 
@@ -86,7 +86,7 @@ namespace WDBXEditor
 			this.btnBrowse.TabIndex = 2;
 			this.btnBrowse.Text = "Browse";
 			this.btnBrowse.UseVisualStyleBackColor = true;
-			this.btnBrowse.Click += new System.EventHandler(this.btnBrowse_Click);
+			this.btnBrowse.Click += new System.EventHandler(this.BtnBrowse_Click);
 			// 
 			// label1
 			// 
@@ -111,7 +111,7 @@ namespace WDBXEditor
 			this.btnLoad.TabIndex = 15;
 			this.btnLoad.Text = "Open";
 			this.btnLoad.UseVisualStyleBackColor = true;
-			this.btnLoad.Click += new System.EventHandler(this.btnLoad_Click);
+			this.btnLoad.Click += new System.EventHandler(this.BtnLoad_Click);
 			// 
 			// btnClose
 			// 
@@ -121,7 +121,7 @@ namespace WDBXEditor
 			this.btnClose.TabIndex = 16;
 			this.btnClose.Text = "Close";
 			this.btnClose.UseVisualStyleBackColor = true;
-			this.btnClose.Click += new System.EventHandler(this.btnClose_Click);
+			this.btnClose.Click += new System.EventHandler(this.BtnClose_Click);
 			// 
 			// folderBrowserDialog
 			// 

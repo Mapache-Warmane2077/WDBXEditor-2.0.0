@@ -33,7 +33,7 @@ namespace WDBXEditor.Forms
                                          Value = $"{x.FileName} ({x.TableStructure.Build})"
                                      });
 
-            if (datasource.Count() == 0)
+            if (!datasource.Any())
             {
                 lbDefinitions.DataSource = null;
             }
@@ -45,7 +45,7 @@ namespace WDBXEditor.Forms
             }
         }
 
-        private void btnLoad_Click(object sender, EventArgs e)
+        private void BtnLoad_Click(object sender, EventArgs e)
         {
             var counterpart = (lbDefinitions.SelectedValue as DBEntry)?.Header;
             (Hotfix.Header as HTFX).Read(counterpart, Hotfix);
@@ -54,7 +54,7 @@ namespace WDBXEditor.Forms
             this.Close();
         }
 
-        private void btnClose_Click(object sender, EventArgs e)
+        private void BtnClose_Click(object sender, EventArgs e)
         {
             this.DialogResult = DialogResult.Cancel;
             this.Close();

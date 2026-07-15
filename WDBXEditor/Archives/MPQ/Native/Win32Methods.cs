@@ -9,18 +9,18 @@ using System.Text;
 
 namespace WDBXEditor.Archives.MPQ.Native
 {
-    internal static class Win32Methods
+    internal static partial class Win32Methods // <-- ¡Solo faltaba la palabra partial aquí!
     {
-        [DllImport("kernel32", ExactSpelling = false, SetLastError = true)]
-        public static extern uint GetMappedFileName(
+        [LibraryImport("psapi.dll", SetLastError = true)]
+        public static partial uint GetMappedFileName(
             IntPtr hProcess,
             IntPtr fileHandle,
             IntPtr lpFilename,
             uint nSize
             );
 
-        [DllImport("kernel32", ExactSpelling = false, SetLastError = true)]
-        public static extern uint GetFinalPathNameByHandle(
+        [LibraryImport("kernel32.dll", SetLastError = true)]
+        public static partial uint GetFinalPathNameByHandle(
             IntPtr hFile,
             IntPtr lpszFilePath,
             uint cchFilePath,
@@ -32,7 +32,7 @@ namespace WDBXEditor.Archives.MPQ.Native
             const uint size = 522;
             IntPtr path = Marshal.AllocCoTaskMem(unchecked((int)size)); // MAX_PATH + 1 char
 
-            string result = null;
+            string result;
             try
             {
                 // constant 0x2 = VOLUME_NAME_NT

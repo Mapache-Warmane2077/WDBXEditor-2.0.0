@@ -1,5 +1,5 @@
 ﻿
-namespace ADGV
+namespace AdvancedDataGridView
 {
     partial class ColumnMenu
     {
@@ -118,17 +118,17 @@ namespace ADGV
             
             this.Closed += new System.Windows.Forms.ToolStripDropDownClosedEventHandler(MenuStrip_Closed);
             this.LostFocus += new System.EventHandler(MenuStrip_LostFocus);
-            this.cancelFilterMenuItem.Click += new System.EventHandler(cancelFilterMenuItem_Click);
-            this.cancelFilterMenuItem.MouseEnter += new System.EventHandler(cancelFilterMenuItem_MouseEnter);
-            this.sortASCMenuItem.Click += new System.EventHandler(sortASCMenuItem_Click);
-            this.sortASCMenuItem.MouseEnter += new System.EventHandler(sortASCMenuItem_MouseEnter);
-            this.sortDESCMenuItem.Click += new System.EventHandler(sortDESCMenuItem_Click);
-            this.sortDESCMenuItem.MouseEnter += new System.EventHandler(sortDESCMenuItem_MouseEnter);
-            this.cancelSortMenuItem.Click += new System.EventHandler(cancelSortMenuItem_Click);
-            this.cancelSortMenuItem.MouseEnter += new System.EventHandler(cancelSortMenuItem_MouseEnter);
-            this.customFilterLastFiltersListMenuItem.Click += new System.EventHandler(customFilterMenuItem_Click);
-            this.hideMenuItem.Click += new System.EventHandler(hideMenuItem_Click);
-            this.hexDisplayMenuItem.Click += new System.EventHandler(hexDisplayMenuItem_Click);
+            this.cancelFilterMenuItem.Click += CancelFilterMenuItem_Click;
+            this.cancelFilterMenuItem.MouseEnter += CancelFilterMenuItem_MouseEnter;
+            this.sortASCMenuItem.Click += SortASCMenuItem_Click;
+            this.sortASCMenuItem.MouseEnter += SortASCMenuItem_MouseEnter;
+            this.sortDESCMenuItem.Click += SortDESCMenuItem_Click;
+            this.sortDESCMenuItem.MouseEnter += SortDESCMenuItem_MouseEnter;
+            this.cancelSortMenuItem.Click += CancelSortMenuItem_Click;
+            this.cancelSortMenuItem.MouseEnter += CancelSortMenuItem_MouseEnter;
+            this.customFilterLastFiltersListMenuItem.Click += CustomFilterMenuItem_Click;
+            this.hideMenuItem.Click += HideMenuItem_Click;
+            this.hexDisplayMenuItem.Click += HexDisplayMenuItem_Click;
 
 
             this.ResumeLayout(false);

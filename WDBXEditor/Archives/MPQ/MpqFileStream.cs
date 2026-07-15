@@ -12,7 +12,7 @@ namespace WDBXEditor.Archives.MPQ
     public class MpqFileStream : Stream
     {
         private MpqFileSafeHandle _handle;
-        private FileAccess _accessType;
+        private readonly FileAccess _accessType;
         private MpqArchive _owner;
 
         internal MpqFileStream(MpqFileSafeHandle handle, FileAccess accessType, MpqArchive owner)
@@ -24,8 +24,8 @@ namespace WDBXEditor.Archives.MPQ
 
         private void VerifyHandle()
         {
-            if (_handle == null || _handle.IsInvalid || _handle.IsClosed)
-                throw new ObjectDisposedException("MpqFileStream");
+            // CA1513: Usar ThrowIf en lugar del bloque if tradicional
+            ObjectDisposedException.ThrowIf(_handle == null || _handle.IsInvalid || _handle.IsClosed, "MpqFileStream");
         }
 
         public override bool CanRead
@@ -80,12 +80,13 @@ namespace WDBXEditor.Archives.MPQ
 
         public override unsafe int Read(byte[] buffer, int offset, int count)
         {
-            if (buffer == null)
-                throw new ArgumentNullException("buffer");
+            ArgumentNullException.ThrowIfNull(buffer);
+
+            // CA2208: Agregar mensaje y paramName al ArgumentException
             if (offset > buffer.Length || (offset + count) > buffer.Length)
-                throw new ArgumentException();
-            if (count < 0)
-                throw new ArgumentOutOfRangeException("count");
+                throw new ArgumentException("Offset and count exceed buffer bounds.", nameof(offset));
+
+            ArgumentOutOfRangeException.ThrowIfNegative(count);
 
             VerifyHandle();
 
@@ -93,7 +94,7 @@ namespace WDBXEditor.Archives.MPQ
             uint read;
             fixed (byte* pb = &buffer[offset])
             {
-                NativeOverlapped overlapped = default(NativeOverlapped);
+                NativeOverlapped overlapped = default;
                 success = NativeMethods.SFileReadFile(_handle, new IntPtr(pb), unchecked((uint)count), out read, ref overlapped);
             }
 
@@ -120,16 +121,15 @@ namespace WDBXEditor.Archives.MPQ
 
         public override unsafe void Write(byte[] buffer, int offset, int count)
         {
-            VerifyHandle();
+            VerifyHandle(); // (Se eliminó la llamada duplicada que estaba más abajo)
 
-            if (buffer == null)
-                throw new ArgumentNullException("buffer");
+            ArgumentNullException.ThrowIfNull(buffer);
+
+            // CA2208: Agregar mensaje y paramName al ArgumentException
             if (offset > buffer.Length || (offset + count) > buffer.Length)
-                throw new ArgumentException();
-            if (count < 0)
-                throw new ArgumentOutOfRangeException("count");
+                throw new ArgumentException("Offset and count exceed buffer bounds.", nameof(offset));
 
-            VerifyHandle();
+            ArgumentOutOfRangeException.ThrowIfNegative(count);
 
             bool success;
             fixed (byte* pb = &buffer[offset])
@@ -153,11 +153,8 @@ namespace WDBXEditor.Archives.MPQ
                     _handle = null;
                 }
 
-                if (_owner != null)
-                {
-                    _owner.RemoveOwnedFile(this);
-                    _owner = null;
-                }
+                _owner?.RemoveOwnedFile(this);
+                _owner = null;
             }
         }
 

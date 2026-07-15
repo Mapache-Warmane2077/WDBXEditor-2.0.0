@@ -19,45 +19,54 @@ namespace WDBXEditor.Forms
         /// <returns></returns>
         public static DialogResult ShowInputDialog(string Prompt, string Title, string Default, ref string Result)
         {
-            System.Drawing.Size size = new System.Drawing.Size(200, 80);
-            Form inputBox = new Form();
-
-            inputBox.StartPosition = FormStartPosition.CenterParent;
-            inputBox.FormBorderStyle = FormBorderStyle.Sizable;
-            inputBox.ClientSize = size;
-            inputBox.Text = Title;
-            inputBox.MaximizeBox = false;
-            inputBox.MinimizeBox = false;
+            System.Drawing.Size size = new(200, 80);
+            Form inputBox = new()
+            {
+                StartPosition = FormStartPosition.CenterParent,
+                FormBorderStyle = FormBorderStyle.Sizable,
+                ClientSize = size,
+                Text = Title,
+                MaximizeBox = false,
+                MinimizeBox = false
+            };
             inputBox.MaximumSize = inputBox.Size;
             inputBox.MinimumSize = inputBox.Size;
             inputBox.ShowIcon = false;
 
-            Label prompt = new Label();
-            prompt.Size = new System.Drawing.Size(size.Width - 10, 13);
-            prompt.Location = new System.Drawing.Point(5, 5);
-            prompt.Text = Prompt;
+            Label prompt = new()
+            {
+                Size = new System.Drawing.Size(size.Width - 10, 13),
+                Location = new System.Drawing.Point(5, 5),
+                Text = Prompt
+            };
             inputBox.Controls.Add(prompt);
 
-            TextBox textBox = new TextBox();
-            textBox.Size = new System.Drawing.Size(size.Width - 10, 23);
-            textBox.Location = new System.Drawing.Point(5, 25);
-            textBox.Text = Default;
+            TextBox textBox = new()
+            {
+                Size = new System.Drawing.Size(size.Width - 10, 23),
+                Location = new System.Drawing.Point(5, 25),
+                Text = Default
+            };
             inputBox.Controls.Add(textBox);
 
-            Button okButton = new Button();
-            okButton.DialogResult = DialogResult.OK;
-            okButton.Name = "okButton";
-            okButton.Size = new System.Drawing.Size(75, 23);
-            okButton.Text = "&OK";
-            okButton.Location = new System.Drawing.Point(size.Width - 80 - 80, 49);
+            Button okButton = new()
+            {
+                DialogResult = DialogResult.OK,
+                Name = "okButton",
+                Size = new System.Drawing.Size(75, 23),
+                Text = "&OK",
+                Location = new System.Drawing.Point(size.Width - 80 - 80, 49)
+            };
             inputBox.Controls.Add(okButton);
 
-            Button cancelButton = new Button();
-            cancelButton.DialogResult = DialogResult.Cancel;
-            cancelButton.Name = "cancelButton";
-            cancelButton.Size = new System.Drawing.Size(75, 23);
-            cancelButton.Text = "&Cancel";
-            cancelButton.Location = new System.Drawing.Point(size.Width - 80, 49);
+            Button cancelButton = new()
+            {
+                DialogResult = DialogResult.Cancel,
+                Name = "cancelButton",
+                Size = new System.Drawing.Size(75, 23),
+                Text = "&Cancel",
+                Location = new System.Drawing.Point(size.Width - 80, 49)
+            };
             inputBox.Controls.Add(cancelButton);
 
             inputBox.AcceptButton = okButton;
@@ -70,57 +79,68 @@ namespace WDBXEditor.Forms
 
         public static DialogResult ShowOverwriteDialog(string Prompt, string Title)
         {
-            System.Drawing.Size size = new System.Drawing.Size(280, 105);
-            Form inputBox = new Form();
-
-            inputBox.StartPosition = FormStartPosition.CenterParent;
-            inputBox.FormBorderStyle = FormBorderStyle.FixedDialog;
-            inputBox.ClientSize = size;
-            inputBox.Text = Title;
-            inputBox.MaximizeBox = false;
-            inputBox.MinimizeBox = false;
+            System.Drawing.Size size = new(280, 105);
+            Form inputBox = new()
+            {
+                StartPosition = FormStartPosition.CenterParent,
+                FormBorderStyle = FormBorderStyle.FixedDialog,
+                ClientSize = size,
+                Text = Title,
+                MaximizeBox = false,
+                MinimizeBox = false
+            };
             inputBox.MaximumSize = inputBox.Size;
             inputBox.MinimumSize = inputBox.Size;
             inputBox.ShowIcon = false;
 
-            Panel panel = new Panel();
-            panel.Size = new System.Drawing.Size(size.Width, inputBox.Size.Height - 85);
-            panel.Location = new System.Drawing.Point(0, 0);
-            panel.BackColor = System.Drawing.Color.White;
+            Panel panel = new()
+            {
+                Size = new System.Drawing.Size(size.Width, inputBox.Size.Height - 85),
+                Location = new System.Drawing.Point(0, 0),
+                BackColor = System.Drawing.Color.White
+            };
             inputBox.Controls.Add(panel);
 
-            Label prompt = new Label();
-            prompt.Size = new System.Drawing.Size(size.Width - 10, 30);
-            prompt.Location = new System.Drawing.Point(15, (panel.Size.Height / 2) - 20);
-            prompt.Text = Prompt;
-            prompt.Font = new System.Drawing.Font("Segoe UI", 9);
+            Label prompt = new()
+            {
+                Size = new System.Drawing.Size(size.Width - 10, 30),
+                Location = new System.Drawing.Point(15, (panel.Size.Height / 2) - 20),
+                Text = Prompt,
+                Font = new System.Drawing.Font("Segoe UI", 9)
+            };
             panel.Controls.Add(prompt);
 
-            Button okButton = new Button();
-            okButton.DialogResult = DialogResult.OK;
-            okButton.Name = "yesButton";
-            okButton.Size = new System.Drawing.Size(75, 26);
-            okButton.Text = "Append";
-            okButton.Location = new System.Drawing.Point(size.Width - 80 - 80 - 80, 69);
-            okButton.Tag = DialogResult.Yes;
+            Button okButton = new()
+            {
+                DialogResult = DialogResult.OK,
+                Name = "yesButton",
+                Size = new System.Drawing.Size(75, 26),
+                Text = "Append",
+                Location = new System.Drawing.Point(size.Width - 80 - 80 - 80, 69),
+                Tag = DialogResult.Yes
+            };
             inputBox.Controls.Add(okButton);
 
-            Button overrideButton = new Button();
-            overrideButton.DialogResult = DialogResult.Cancel;
-            overrideButton.Name = "overButton";
-            overrideButton.Size = new System.Drawing.Size(75, 26);
-            overrideButton.Text = "Overwrite";
-            overrideButton.Location = new System.Drawing.Point(size.Width - 80 - 80, 69);
-            overrideButton.Tag = DialogResult.No;
+            Button overrideButton = new()
+            {
+                DialogResult = DialogResult.Cancel,
+                Name = "overButton",
+                Size = new System.Drawing.Size(75, 26),
+                Text = "Overwrite",
+                Location = new System.Drawing.Point(size.Width - 80 - 80, 69),
+                Tag = DialogResult.No
+            };
             inputBox.Controls.Add(overrideButton);
 
-            Button cancelButton = new Button();
-            cancelButton.DialogResult = DialogResult.Cancel;
-            cancelButton.Name = "cancelButton";
-            cancelButton.Size = new System.Drawing.Size(75, 26);
-            cancelButton.Text = "Cancel";
-            cancelButton.Location = new System.Drawing.Point(size.Width - 80, 69);
-            cancelButton.Tag = DialogResult.Cancel;
+            Button cancelButton = new()
+            {
+                DialogResult = DialogResult.Cancel,
+                Name = "cancelButton",
+                Size = new System.Drawing.Size(75, 26),
+                Text = "Cancel",
+                Location = new System.Drawing.Point(size.Width - 80, 69),
+                Tag = DialogResult.Cancel
+            };
             inputBox.Controls.Add(cancelButton);
 
             cancelButton.Click += new EventHandler(Button_Click);

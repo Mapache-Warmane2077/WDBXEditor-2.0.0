@@ -11,7 +11,7 @@ namespace WDBXEditor.Common
 {
     class AutoProgressBar : ProgressBar
     {
-        private BackgroundWorker bgw = new BackgroundWorker();
+        private readonly BackgroundWorker bgw = new();
 
         public void Start(int increment = 3)
         {
@@ -19,15 +19,15 @@ namespace WDBXEditor.Common
 
             this.Style = ProgressBarStyle.Continuous;
             this.Value = 0;
-            bgw.DoWork += new DoWorkEventHandler(bgw_DoWork);
-            bgw.ProgressChanged += new ProgressChangedEventHandler(bgw_ProgressChanged);
-            bgw.RunWorkerCompleted += new RunWorkerCompletedEventHandler(bgw_RunWorkerCompleted);
+            bgw.DoWork += new DoWorkEventHandler(Bgw_DoWork);
+            bgw.ProgressChanged += new ProgressChangedEventHandler(Bgw_ProgressChanged);
+            bgw.RunWorkerCompleted += new RunWorkerCompletedEventHandler(Bgw_RunWorkerCompleted);
             bgw.WorkerReportsProgress = true;
             bgw.WorkerSupportsCancellation = true;
             bgw.RunWorkerAsync(increment);
         }
 
-        void bgw_DoWork(object sender, DoWorkEventArgs e)
+        void Bgw_DoWork(object sender, DoWorkEventArgs e)
         {
             int inc = (int)e.Argument;
             int i = 0;
@@ -49,13 +49,13 @@ namespace WDBXEditor.Common
             }
         }
 
-        void bgw_ProgressChanged(object sender, ProgressChangedEventArgs e)
+        void Bgw_ProgressChanged(object sender, ProgressChangedEventArgs e)
         {
             if (!bgw.CancellationPending)
                 this.Invoke((MethodInvoker)delegate { Value = e.ProgressPercentage; });
         }
 
-        void bgw_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
+        void Bgw_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
         {
             Task.Run(() => ClearValue());
         }

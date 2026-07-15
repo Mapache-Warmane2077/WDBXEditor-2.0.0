@@ -6,22 +6,26 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
-namespace ADGV
+namespace AdvancedDataGridView
 {
     partial class AdvancedDataGridView : DataGridView
     {
         public event EventHandler UndoRedoChanged;
         private const int BulkDeleteAmount = 25;
 
-        public bool CanRedo => redoStack.Count > 0;
-        public bool CanUndo => undoStack.Count > 0;
+        // CA1836: Elegir "IsEmpty" en vez de "Count"
+        public bool CanRedo => !redoStack.IsEmpty;
+        public bool CanUndo => !undoStack.IsEmpty;
 
-        private ConcurrentStack<ChangeSet> undoStack = new ConcurrentStack<ChangeSet>();
-        private ConcurrentStack<ChangeSet> redoStack = new ConcurrentStack<ChangeSet>();
-        private object current = new object();
+        // IDE0044 y IDE0090: Hacer readonly y simplificar "new"
+        private readonly ConcurrentStack<ChangeSet> undoStack = new();
+        private readonly ConcurrentStack<ChangeSet> redoStack = new();
+        // IDE0090: Simplificar "new"
+        private object current = new();
 
-        private Func<object, object, bool> Compare = (c, n) => (c?.ToString() ?? "").Equals(n?.ToString() ?? ""); //Object string compare
-        private Func<DataGridViewRow, DataRow> ToDataRow = r => ((DataRowView)r.DataBoundItem).Row;
+        // IDE0044: Hacer readonly
+        private readonly Func<object, object, bool> Compare = (c, n) => (c?.ToString() ?? "").Equals(n?.ToString() ?? ""); //Object string compare
+        private readonly Func<DataGridViewRow, DataRow> ToDataRow = r => ((DataRowView)r.DataBoundItem).Row;
 
         protected override void OnKeyDown(KeyEventArgs e)
         {
@@ -52,7 +56,7 @@ namespace ADGV
 
             if (!Compare(current, this.Rows[e.RowIndex].Cells[e.ColumnIndex].Value))
             {
-                if(this.Rows[e.RowIndex].IsNewRow) //Technically OnUserAddedRow but fires this method
+                if (this.Rows[e.RowIndex].IsNewRow) //Technically OnUserAddedRow but fires this method
                 {
                     OnUserAddedRow(new DataGridViewRowEventArgs(this.Rows[e.RowIndex]));
                 }
@@ -110,17 +114,18 @@ namespace ADGV
 
         public void Undo()
         {
-            if (undoStack.Count == 0)
+            // CA1836: Elegir "IsEmpty" en vez de "Count"
+            if (undoStack.IsEmpty)
             {
                 this.Invoke(UndoRedoChanged);
                 return;
             }
 
-            ChangeSet redo;
-            if (!undoStack.TryPop(out redo))
+            // IDE0018: La declaración de variables se puede insertar
+            if (!undoStack.TryPop(out ChangeSet redo))
                 return;
 
-            int index = ((BindingSource)DataSource).Find(primarykey.ColumnName, redo.Row.Cells[primarykey.Ordinal].Value);
+            int index = ((BindingSource)DataSource).Find(InternalPrimaryKey.ColumnName, redo.Row.Cells[InternalPrimaryKey.Ordinal].Value);
 
             switch (redo.Action)
             {
@@ -168,17 +173,18 @@ namespace ADGV
 
         public void Redo()
         {
-            if (redoStack.Count == 0)
+            // CA1836: Elegir "IsEmpty" en vez de "Count"
+            if (redoStack.IsEmpty)
             {
                 this.Invoke(UndoRedoChanged);
                 return;
             }
 
-            ChangeSet undo;
-            if (!redoStack.TryPop(out undo))
+            // IDE0018: La declaración de variables se puede insertar
+            if (!redoStack.TryPop(out ChangeSet undo))
                 return;
 
-            int index = ((BindingSource)DataSource).Find(primarykey.ColumnName, undo.Row.Cells[primarykey.Ordinal].Value);
+            int index = ((BindingSource)DataSource).Find(InternalPrimaryKey.ColumnName, undo.Row.Cells[InternalPrimaryKey.Ordinal].Value);
 
             switch (undo.Action)
             {

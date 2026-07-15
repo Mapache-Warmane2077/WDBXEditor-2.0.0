@@ -47,7 +47,7 @@
             this.lbItems.Size = new System.Drawing.Size(272, 94);
             this.lbItems.TabIndex = 1;
             this.lbItems.Visible = false;
-            this.lbItems.ItemCheck += new System.Windows.Forms.ItemCheckEventHandler(this.lbItems_ItemCheck);
+            this.lbItems.ItemCheck += new System.Windows.Forms.ItemCheckEventHandler(this.LbItems_ItemCheck);
             // 
             // cbBox
             // 
@@ -65,9 +65,9 @@
             this.cbBox.Name = "cbBox";
             this.cbBox.Size = new System.Drawing.Size(214, 21);
             this.cbBox.TabIndex = 0;
-            this.cbBox.DrawItem += new System.Windows.Forms.DrawItemEventHandler(this.cbBox_DrawItem);
-            this.cbBox.DropDown += new System.EventHandler(this.cbBox_DropDown);
-            this.cbBox.DropDownClosed += new System.EventHandler(this.cbBox_DropDownClosed);
+            this.cbBox.DrawItem += new System.Windows.Forms.DrawItemEventHandler(this.CbBox_DrawItem);
+            this.cbBox.DropDown += new System.EventHandler(this.CbBox_DropDown);
+            this.cbBox.DropDownClosed += new System.EventHandler(this.CbBox_DropDownClosed);
             // 
             // btnEmpty
             // 
@@ -92,7 +92,7 @@
             this.btnReset.TabIndex = 2;
             this.toolTip1.SetToolTip(this.btnReset, "Reset");
             this.btnReset.UseVisualStyleBackColor = true;
-            this.btnReset.Click += new System.EventHandler(this.btnReset_Click);
+            this.btnReset.Click += new System.EventHandler(this.BtnReset_Click);
             // 
             // DropdownCheckList
             // 

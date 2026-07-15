@@ -39,9 +39,9 @@ namespace WDBXEditor.ConsoleHandler
                 throw new Exception($"   File not found {file}.");
 
             //Check the required definition exists
-            var def = Database.Definitions.Tables.FirstOrDefault(x => x.Build == build && x.Name.Equals(filenoext, IGNORECASE));
-            if (def == null)
-                throw new Exception($"   Could not find definition for {Path.GetFileName(file)} build {build}.");
+            // IDE0270: Null check simplificado
+            var def = Database.Definitions.Tables.FirstOrDefault(x => x.Build == build && x.Name.Equals(filenoext, IGNORECASE))
+                ?? throw new Exception($"   Could not find definition for {Path.GetFileName(file)} build {build}.");
 
             Database.BuildNumber = build;
             var dic = new ConcurrentDictionary<string, MemoryStream>();
@@ -51,24 +51,22 @@ namespace WDBXEditor.ConsoleHandler
             {
                 case SourceType.MPQ:
                     Console.WriteLine("Loading from MPQ archive...");
-                    using (MpqArchive archive = new MpqArchive(source, FileAccess.Read))
+                    using (MpqArchive archive = new(source, FileAccess.Read))
                     {
                         string line = string.Empty;
                         bool loop = true;
-                        using (MpqFileStream listfile = archive.OpenFile("(listfile)"))
-                        using (StreamReader sr = new StreamReader(listfile))
+                        using MpqFileStream listfile = archive.OpenFile("(listfile)");
+                        using StreamReader sr = new(listfile);
+                        while ((line = sr.ReadLine()) != null && loop)
                         {
-                            while ((line = sr.ReadLine()) != null && loop)
+                            if (line.EndsWith(filename, IGNORECASE))
                             {
-                                if (line.EndsWith(filename, IGNORECASE))
-                                {
-                                    loop = false;
-                                    var ms = new MemoryStream();
-                                    archive.OpenFile(line).CopyTo(ms);
-                                    dic.TryAdd(filename, ms);
+                                loop = false;
+                                var ms = new MemoryStream();
+                                archive.OpenFile(line).CopyTo(ms);
+                                dic.TryAdd(filename, ms);
 
-                                    error = Database.LoadFiles(dic).Result.FirstOrDefault();
-                                }
+                                error = Database.LoadFiles(dic).Result.FirstOrDefault();
                             }
                         }
                     }
@@ -91,7 +89,7 @@ namespace WDBXEditor.ConsoleHandler
                     }
                     break;
                 default:
-                    error = Database.LoadFiles(new string[] { file }).Result.FirstOrDefault();
+                    error = Database.LoadFiles([file]).Result.FirstOrDefault();
                     break;
             }
 
@@ -114,33 +112,33 @@ namespace WDBXEditor.ConsoleHandler
             string source = ParamCheck<string>(pmap, "-s");
             string output = ParamCheck<string>(pmap, "-o");
             SourceType sType = GetSourceType(source);
-            
+
             if (string.IsNullOrWhiteSpace(filter))
                 filter = "*";
 
             string regexfilter = "(" + Regex.Escape(filter).Replace(@"\*", @".*").Replace(@"\?", ".") + ")";
-            Func<string, bool> TypeCheck = t => Path.GetExtension(t).ToLower() == ".dbc" || Path.GetExtension(t).ToLower() == ".db2";
+            static bool TypeCheck(string t) =>
+            string.Equals(Path.GetExtension(t), ".dbc", StringComparison.OrdinalIgnoreCase) ||
+            string.Equals(Path.GetExtension(t), ".db2", StringComparison.OrdinalIgnoreCase);
 
-            
+
             var dic = new ConcurrentDictionary<string, MemoryStream>();
             switch (sType)
             {
                 case SourceType.MPQ:
                     Console.WriteLine("Loading from MPQ archive...");
-                    using (MpqArchive archive = new MpqArchive(source, FileAccess.Read))
+                    using (MpqArchive archive = new(source, FileAccess.Read))
                     {
                         string line = string.Empty;
-                        using (MpqFileStream listfile = archive.OpenFile("(listfile)"))
-                        using (StreamReader sr = new StreamReader(listfile))
+                        using MpqFileStream listfile = archive.OpenFile("(listfile)");
+                        using StreamReader sr = new(listfile);
+                        while ((line = sr.ReadLine()) != null)
                         {
-                            while ((line = sr.ReadLine()) != null)
+                            if (TypeCheck(line) && Regex.IsMatch(line, regexfilter, RegexOptions.Compiled | RegexOptions.IgnoreCase))
                             {
-                                if(TypeCheck(line) && Regex.IsMatch(line, regexfilter, RegexOptions.Compiled | RegexOptions.IgnoreCase))
-                                {
-                                    var ms = new MemoryStream();
-                                    archive.OpenFile(line).CopyTo(ms);
-                                    dic.TryAdd(Path.GetFileName(line), ms);
-                                }
+                                var ms = new MemoryStream();
+                                archive.OpenFile(line).CopyTo(ms);
+                                dic.TryAdd(Path.GetFileName(line), ms);
                             }
                         }
                     }
@@ -150,7 +148,7 @@ namespace WDBXEditor.ConsoleHandler
                     using (var casc = new CASCHandler(source))
                     {
                         var files = Constants.ClientDBFileNames.Where(x => Regex.IsMatch(Path.GetFileName(x), regexfilter, RegexOptions.Compiled | RegexOptions.IgnoreCase));
-                        foreach(var file in files)
+                        foreach (var file in files)
                         {
                             var stream = casc.ReadFile(file);
                             if (stream != null)
@@ -160,19 +158,17 @@ namespace WDBXEditor.ConsoleHandler
                     break;
             }
 
-            if (dic.Count == 0)
+            if (dic.IsEmpty)
                 throw new Exception("   No matching files found.");
 
             if (!Directory.Exists(output))
                 Directory.CreateDirectory(output);
 
-            foreach(var d in dic)
+            foreach (var d in dic)
             {
-                using (var fs = new FileStream(Path.Combine(output, d.Key), FileMode.Create))
-                {
-                    fs.Write(d.Value.ToArray(), 0, (int)d.Value.Length);
-                    fs.Close();
-                }
+                using var fs = new FileStream(Path.Combine(output, d.Key), FileMode.Create);
+                fs.Write(d.Value.ToArray(), 0, (int)d.Value.Length);
+                fs.Close();
             }
 
             dic.Clear();
@@ -181,7 +177,7 @@ namespace WDBXEditor.ConsoleHandler
             Console.WriteLine("");
         }
         #endregion
-        
+
         #region Export
         /// <summary>
         /// Exports a file to either SQL, JSON or CSV
@@ -197,30 +193,28 @@ namespace WDBXEditor.ConsoleHandler
             LoadCommand(args);
 
             var entry = Database.Entries[0];
-            using (FileStream fs = new FileStream(output, FileMode.Create))
+            using FileStream fs = new(output, FileMode.Create);
+            byte[] data = [];
+            switch (oType)
             {
-                byte[] data = new byte[0];
-                switch (oType)
-                {
-                    case OutputType.CSV:
-                        data = Encoding.UTF8.GetBytes(entry.ToCSV());
-                        break;
-                    case OutputType.JSON:
-                        data = Encoding.UTF8.GetBytes(entry.ToJSON());
-                        break;
-                    case OutputType.SQL:
-                        data = Encoding.UTF8.GetBytes(entry.ToSQL());
-                        break;
-                }
-
-                fs.Write(data, 0, data.Length);
-
-                Console.WriteLine($"Successfully exported to {output}.");
+                case OutputType.CSV:
+                    data = Encoding.UTF8.GetBytes(entry.ToCSV());
+                    break;
+                case OutputType.JSON:
+                    data = Encoding.UTF8.GetBytes(entry.ToJSON());
+                    break;
+                case OutputType.SQL:
+                    data = Encoding.UTF8.GetBytes(entry.ToSQL());
+                    break;
             }
+
+            fs.Write(data, 0, data.Length);
+
+            Console.WriteLine($"Successfully exported to {output}.");
         }
 
         #endregion
-        
+
         #region SQL Dump
         /// <summary>
         /// Exports a file directly into a SQL database
@@ -235,18 +229,16 @@ namespace WDBXEditor.ConsoleHandler
             LoadCommand(args);
 
             var entry = Database.Entries[0];
-            using (MySqlConnection conn = new MySqlConnection(connection))
+            using MySqlConnection conn = new(connection);
+            try
             {
-                try
-                {
-                    conn.Open();
-                }
-                catch { throw new Exception("   Incorrect MySQL login details."); }
-
-                entry.ToSQLTable(connection);
-
-                Console.WriteLine($"Successfully exported to {conn.Database}.");
+                conn.Open();
             }
+            catch { throw new Exception("   Incorrect MySQL login details."); }
+
+            entry.ToSQLTable(connection);
+
+            Console.WriteLine($"Successfully exported to {conn.Database}.");
         }
 
         #endregion  
@@ -254,11 +246,11 @@ namespace WDBXEditor.ConsoleHandler
         #region Helpers
         private static T ParamCheck<T>(Dictionary<string, string> map, string field, bool required = true)
         {
-            if (map.ContainsKey(field))
+            if (map.TryGetValue(field, out string value))
             {
                 try
                 {
-                    return (T)Convert.ChangeType(map[field], typeof(T));
+                    return (T)Convert.ChangeType(value, typeof(T));
                 }
                 catch
                 {
@@ -291,17 +283,15 @@ namespace WDBXEditor.ConsoleHandler
         private static OutputType GetOutputType(string output)
         {
             string extension = Path.GetExtension(output).ToLower();
-            switch (extension)
-            {
-                case ".csv":
-                    return OutputType.CSV;
-                case ".sql":
-                    return OutputType.SQL;
-                case ".json":
-                    return OutputType.JSON;
-            }
 
-            throw new Exception("   Invalid output type. Options are CSV, JSON or SQL.");
+            // IDE0066: Expresión Switch
+            return extension switch
+            {
+                ".csv" => OutputType.CSV,
+                ".sql" => OutputType.SQL,
+                ".json" => OutputType.JSON,
+                _ => throw new Exception($"   Unsupported output format: {extension}") // Siempre es buena práctica manejar el caso por defecto
+            };
         }
 
 

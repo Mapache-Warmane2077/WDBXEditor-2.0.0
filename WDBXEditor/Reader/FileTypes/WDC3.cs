@@ -51,7 +51,7 @@ namespace WDBXEditor.Reader.FileTypes
                 return;
 
             //Gather field structures
-            FieldStructure = new List<FieldStructureEntry>();
+            FieldStructure = [];
             for (int i = 0; i < TotalFieldSize; i++)
             {
                 var field = new FieldStructureEntry(dbReader.ReadInt16(), dbReader.ReadUInt16());
@@ -61,7 +61,7 @@ namespace WDBXEditor.Reader.FileTypes
             Unknown3 = dbReader.ReadInt32();
 
             // ColumnMeta
-            ColumnMeta = new List<ColumnStructureEntry>();
+            ColumnMeta = [];
             for (int i = 0; i < FieldCount; i++)
             {
                 var column = new ColumnStructureEntry()
@@ -92,7 +92,7 @@ namespace WDBXEditor.Reader.FileTypes
                     int elements = (int)ColumnMeta[i].AdditionalDataSize / 4;
                     int cardinality = Math.Max(ColumnMeta[i].Cardinality, 1);
 
-                    ColumnMeta[i].PalletValues = new List<byte[]>();
+                    ColumnMeta[i].PalletValues = [];
                     for (int j = 0; j < elements / cardinality; j++)
                         ColumnMeta[i].PalletValues.Add(dbReader.ReadBytes(cardinality * 4));
                 }
@@ -103,7 +103,7 @@ namespace WDBXEditor.Reader.FileTypes
             {
                 if (ColumnMeta[i].CompressionType == CompressionType.Sparse)
                 {
-                    ColumnMeta[i].SparseValues = new Dictionary<int, byte[]>();
+                    ColumnMeta[i].SparseValues = [];
                     for (int j = 0; j < ColumnMeta[i].AdditionalDataSize / 8; j++)
                         ColumnMeta[i].SparseValues[dbReader.ReadInt32()] = dbReader.ReadBytes(4);
                 }
@@ -116,15 +116,15 @@ namespace WDBXEditor.Reader.FileTypes
             Flags &= ~HeaderFlags.RelationshipData; // appears to be obsolete now
         }
 
-        public new Dictionary<int, byte[]> ReadOffsetData(BinaryReader dbReader, long pos)
+        public new Dictionary<int, byte[]> ReadOffsetData(BinaryReader dbReader)
         {
-            Dictionary<int, byte[]> CopyTable = new Dictionary<int, byte[]>();
-            List<Tuple<int, short>> offsetmap = new List<Tuple<int, short>>();
-            Dictionary<int, OffsetDuplicate> firstindex = new Dictionary<int, OffsetDuplicate>();
-            Dictionary<int, List<int>> Copies = new Dictionary<int, List<int>>();
+            Dictionary<int, byte[]> CopyTable = [];
+            List<Tuple<int, short>> offsetmap = [];
+            Dictionary<int, OffsetDuplicate> firstindex = [];
+            Dictionary<int, List<int>> Copies = [];
 
-            columnOffsets = new List<int>();
-            recordOffsets = new List<int>();
+            columnOffsets = [];
+            recordOffsets = [];
             int[] m_indexes = null;
 
             // OffsetTable
@@ -170,7 +170,7 @@ namespace WDBXEditor.Reader.FileTypes
                     int idcopy = dbReader.ReadInt32();
 
                     if (!Copies.ContainsKey(idcopy))
-                        Copies.Add(idcopy, new List<int>());
+                        Copies.Add(idcopy, []);
 
                     Copies[idcopy].Add(id);
                 }
@@ -184,16 +184,16 @@ namespace WDBXEditor.Reader.FileTypes
                     Records = dbReader.ReadUInt32(),
                     MinId = dbReader.ReadUInt32(),
                     MaxId = dbReader.ReadUInt32(),
-                    Entries = new Dictionary<uint, byte[]>()
+                    Entries = []
                 };
 
                 for (int i = 0; i < RelationShipData.Records; i++)
                 {
                     byte[] foreignKey = dbReader.ReadBytes(4);
                     uint index = dbReader.ReadUInt32();
-                    // has duplicates just like the copy table does... why?
-                    if (!RelationShipData.Entries.ContainsKey(index))
-                        RelationShipData.Entries.Add(index, foreignKey);
+
+                    // CA1864: TryAdd evita la doble búsqueda en el diccionario
+                    RelationShipData.Entries.TryAdd(index, foreignKey);
                 }
 
                 FieldStructure.Add(new FieldStructureEntry(0, 0));
@@ -201,7 +201,7 @@ namespace WDBXEditor.Reader.FileTypes
             }
 
             // Record Data
-            BitStream bitStream = new BitStream(recordData);
+            BitStream bitStream = new(recordData);
             for (int i = 0; i < RecordCount; i++)
             {
                 int id = 0;
@@ -230,12 +230,12 @@ namespace WDBXEditor.Reader.FileTypes
                             recordbytes = recordbytes.Concat(new byte[4]);
                     }
 
-                    CopyTable.Add(id, recordbytes.ToArray());
+                    CopyTable.Add(id, [.. recordbytes]);
 
-                    if (Copies.ContainsKey(id))
+                    if (Copies.TryGetValue(id, out List<int> value))
                     {
-                        foreach (int copy in Copies[id])
-                            CopyTable.Add(copy, BitConverter.GetBytes(copy).Concat(data).ToArray());
+                        foreach (int copy in value)
+                            CopyTable.Add(copy, [.. BitConverter.GetBytes(copy), .. data]);
                     }
                 }
                 else
@@ -246,7 +246,7 @@ namespace WDBXEditor.Reader.FileTypes
                     if (StringBlockSize > 0)
                         recordOffsets.Add((int)bitStream.Offset);
 
-                    List<byte> data = new List<byte>();
+                    List<byte> data = [];
 
                     if (HasIndexTable)
                     {
@@ -341,13 +341,13 @@ namespace WDBXEditor.Reader.FileTypes
                             data.AddRange(new byte[4]);
                     }
 
-                    CopyTable.Add(id, data.ToArray());
+                    CopyTable.Add(id, [.. data]);
 
-                    if (Copies.ContainsKey(id))
+                    if (Copies.TryGetValue(id, out List<int> value))
                     {
-                        foreach (int copy in Copies[id])
+                        foreach (int copy in value)
                         {
-                            byte[] newrecord = CopyTable[id].ToArray();
+                            byte[] newrecord = [.. CopyTable[id]];
                             Buffer.BlockCopy(BitConverter.GetBytes(copy), 0, newrecord, idOffset, 4);
                             CopyTable.Add(copy, newrecord);
 
@@ -377,7 +377,7 @@ namespace WDBXEditor.Reader.FileTypes
             if (CopyTableSize > 0)
             {
                 var sort = CopyTable.Select((x, i) => new { CT = x, Off = recordOffsets[i] }).OrderBy(x => x.CT.Key);
-                recordOffsets = sort.Select(x => x.Off).ToList();
+                recordOffsets = [.. sort.Select(x => x.Off)];
                 CopyTable = sort.ToDictionary(x => x.CT.Key, x => x.CT.Value);
             }
 
@@ -387,8 +387,8 @@ namespace WDBXEditor.Reader.FileTypes
         public override byte[] ReadData(BinaryReader dbReader, long pos)
         {
             Dictionary<int, byte[]> CopyTable = ReadOffsetData(dbReader, pos);
-            OffsetLengths = CopyTable.Select(x => x.Value.Length).ToArray();
-            return CopyTable.Values.SelectMany(x => x).ToArray();
+            OffsetLengths = [.. CopyTable.Select(x => x.Value.Length)];
+            return [.. CopyTable.Values.SelectMany(x => x)];
         }
 
         public override Dictionary<int, string> ReadStringTable(BinaryReader dbReader)
@@ -480,7 +480,7 @@ namespace WDBXEditor.Reader.FileTypes
             var copyRecords = new Dictionary<int, IEnumerable<int>>();
             var copyIds = new HashSet<int>();
 
-            Dictionary<Tuple<long, int>, int> stringLookup = new Dictionary<Tuple<long, int>, int>();
+            Dictionary<Tuple<long, int>, int> stringLookup = [];
 
             long pos = bw.BaseStream.Position;
 
@@ -492,11 +492,11 @@ namespace WDBXEditor.Reader.FileTypes
                 foreach (var c in copies)
                 {
                     int id = c.First();
-                    copyRecords.Add(id, c.Skip(1).ToList());
+                    copyRecords.Add(id, [.. c.Skip(1)]);
                     copyids = copyids.Concat(copyRecords[id]);
                 }
 
-                copyIds = new HashSet<int>(copyids);
+                copyIds = [.. copyids];
             }
 
             // get relationship data
@@ -505,7 +505,7 @@ namespace WDBXEditor.Reader.FileTypes
             {
                 int index = entry.Data.Columns.IndexOf(relationshipColumn);
 
-                Dictionary<int, uint> relationData = new Dictionary<int, uint>();
+                Dictionary<int, uint> relationData = [];
                 foreach (DataRow r in entry.Data.Rows)
                 {
                     int id = r.Field<int>(entry.Key);
@@ -540,10 +540,10 @@ namespace WDBXEditor.Reader.FileTypes
             ColumnMeta.ForEach(x => { x.PalletValues?.Clear(); x.SparseValues?.Clear(); });
 
             // RecordData - this can still all be done via one function, except inline strings
-            BitStream bitStream = new BitStream(entry.Data.Rows.Count * ColumnMeta.Max(x => x.RecordOffset));
+            BitStream bitStream = new(entry.Data.Rows.Count * ColumnMeta.Max(x => x.RecordOffset));
             for (int rowIndex = 0; rowIndex < entry.Data.Rows.Count; rowIndex++)
             {
-                Queue<object> rowData = new Queue<object>(entry.Data.Rows[rowIndex].ItemArray);
+                Queue<object> rowData = new(entry.Data.Rows[rowIndex].ItemArray);
 
                 int id = entry.Data.Rows[rowIndex].Field<int>(entry.Key);
                 bool isCopyRecord = copyIds.Contains(id);
@@ -563,7 +563,7 @@ namespace WDBXEditor.Reader.FileTypes
 
                     // get the values for the current record, array size may require more than 1
                     object[] values = ExtractFields(rowData, stringTable, bitStream, fieldIndex, out bool isString);
-                    byte[][] data = values.Select(x => (byte[])BitConverter.GetBytes((dynamic)x)).ToArray(); // shameful hack
+                    byte[][] data = [.. values.Select(x => (byte[])BitConverter.GetBytes((dynamic)x))]; // shameful hack
                     if (data.Length == 0)
                         continue;
 
@@ -599,7 +599,7 @@ namespace WDBXEditor.Reader.FileTypes
                         case CompressionType.Pallet:
                         case CompressionType.PalletArray:
                             {
-                                byte[] combined = data.SelectMany(x => x.Concat(new byte[4]).Take(4)).ToArray(); // enforce int size rule
+                                byte[] combined = [.. data.SelectMany(x => x.Concat(new byte[4]).Take(4))]; // enforce int size rule
 
                                 int index = ColumnMeta[fieldIndex].PalletValues.FindIndex(x => x.SequenceEqual(combined));
                                 if (index > -1)

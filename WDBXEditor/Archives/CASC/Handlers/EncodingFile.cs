@@ -1,33 +1,27 @@
 ﻿using System.Collections.Generic;
 using System.IO;
+using WDBXEditor.Archives.CASC.Misc;
 using WDBXEditor.Archives.CASC.Structures;
-using WDBXEditor.Archives.Misc;
 
 namespace WDBXEditor.Archives.CASC.Handlers
 {
-    public class EncodingFile
+    public class EncodingFile(byte[] encodingKey)
     {
         public EncodingEntry this[byte[] md5]
         {
             get
             {
-                EncodingEntry entry;
 
-                if (entries.TryGetValue(md5, out entry))
+                if (entries.TryGetValue(md5, out EncodingEntry entry))
                     return entry;
 
-                return default(EncodingEntry);
+                return default;
             }
         }
 
-        public byte[] Key { get; }
+        public byte[] Key { get; } = encodingKey.Slice(0, 9);
 
-        Dictionary<byte[], EncodingEntry> entries = new Dictionary<byte[], EncodingEntry>(new ByteArrayComparer());
-
-        public EncodingFile(byte[] encodingKey)
-        {
-            Key = encodingKey.Slice(0, 9);
-        }
+        readonly Dictionary<byte[], EncodingEntry> entries = new(new ByteArrayComparer());
 
         public void LoadEntries(DataFile file, IndexEntry indexEntry)
         {
@@ -65,7 +59,7 @@ namespace WDBXEditor.Archives.CASC.Handlers
                     keys = blteEntry.ReadUInt16();
                 }
 
-                while (blteEntry.ReadByte() == 0);
+                while (blteEntry.ReadByte() == 0) ;
 
                 blteEntry.BaseStream.Position -= 1;
             }

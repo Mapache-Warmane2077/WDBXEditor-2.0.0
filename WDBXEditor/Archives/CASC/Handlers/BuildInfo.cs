@@ -10,37 +10,34 @@ namespace WDBXEditor.Archives.CASC.Handlers
         {
             get
             {
-                string entry;
-                if (entries.TryGetValue(name, out entry))
+                if (entries.TryGetValue(name, out string entry))
                     return entry;
 
                 return null;
             }
         }
 
-        Dictionary<string, string> entries = new Dictionary<string, string>();
+        readonly Dictionary<string, string> entries = [];
 
         public BuildInfo(string file)
         {
-            using (var sr = new StreamReader(file))
+            using var sr = new StreamReader(file);
+            var header = sr.ReadLine().Split(['|', '!']);
+            var dataLine = "";
+
+            while ((dataLine = sr.ReadLine()) != null)
             {
-                var header = sr.ReadLine().Split(new[] { '|', '!' });
-                var dataLine = "";
+                var data = dataLine.Split(['|']);
 
-                while ((dataLine = sr.ReadLine()) != null)
-                {
-                    var data = dataLine.Split(new[] { '|' });
+                if (data.Length != header.Length / 2)
+                    throw new InvalidOperationException("Invalid header length");
 
-                    if (data.Length != header.Length / 2)
-                        throw new InvalidOperationException("Invalid header length");
+                // Be sure to get the active build info.
+                if (data[1] == "0")
+                    continue;
 
-                    // Be sure to get the active build info.
-                    if (data[1] == "0")
-                        continue;
-
-                    for (var i = 0; i < data.Length; i++)
-                        entries.Add(header[i << 1], data[i]);
-                }
+                for (var i = 0; i < data.Length; i++)
+                    entries.Add(header[i << 1], data[i]);
             }
         }
     }

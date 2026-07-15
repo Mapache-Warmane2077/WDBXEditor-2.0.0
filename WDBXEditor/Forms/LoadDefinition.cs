@@ -32,7 +32,7 @@ namespace WDBXEditor
         }
 
         #region Button Events
-        private void btnLoad_Click(object sender, EventArgs e)
+        private void BtnLoad_Click(object sender, EventArgs e)
         {
             int build = (int)lbDefinitions.SelectedValue;
             Database.BuildNumber = build;
@@ -40,13 +40,13 @@ namespace WDBXEditor
             this.Close();
         }
 
-        private void btnClose_Click(object sender, EventArgs e)
+        private void BtnClose_Click(object sender, EventArgs e)
         {
             this.DialogResult = DialogResult.Cancel;
             this.Close();
         }
 
-        private void btnNewWindow_Click(object sender, EventArgs e)
+        private void BtnNewWindow_Click(object sender, EventArgs e)
         {
             if (InstanceManager.LoadNewInstance(Files))
             {
@@ -57,12 +57,12 @@ namespace WDBXEditor
         #endregion
 
         #region Listbox
-        private void lbDefinitions_SelectedValueChanged(object sender, EventArgs e)
+        private void LbDefinitions_SelectedValueChanged(object sender, EventArgs e)
         {
             btnLoad.Enabled = lbDefinitions.SelectedItems.Count > 0;
         }
 
-        private void lbDefinitions_MouseDoubleClick(object sender, MouseEventArgs e)
+        private void LbDefinitions_MouseDoubleClick(object sender, MouseEventArgs e)
         {
             int index = lbDefinitions.IndexFromPoint(e.Location);
             if (index != ListBox.NoMatches)
@@ -92,26 +92,30 @@ namespace WDBXEditor
             }
 
             //Get compatible builds only
-            bool db2 = Files.Any(x => Path.GetExtension(x).IndexOf("db2", IGNORECASE) >= 0) || Files.Any(x => Path.GetExtension(x).IndexOf("adb", IGNORECASE) >= 0);
+
+            // CA2249: Usar string.Contains en lugar de string.IndexOf >= 0
+            bool db2 = Files.Any(x => Path.GetExtension(x).Contains("db2", IGNORECASE)) || Files.Any(x => Path.GetExtension(x).Contains("adb", IGNORECASE));
 
             var files = Files.Select(x => Path.GetFileNameWithoutExtension(x).ToLower());
-			var datasource = Database.Definitions.Tables
-												 .Where(x => files.Contains(x.Name.ToLower()))
-												 .Select(x => new { Key = x.Build, Value = x.BuildText })
-												 .Distinct()
-												 .Where(x => db2 ? x.Key > (int)ExpansionFinalBuild.WotLK : true); // filter out non DB2/ADB clients
 
-			// filter to the latest build for each version
-			if (mostRecent)
-				datasource = datasource.GroupBy(x => x.Value.Split('(').First()).Select(x => x.Aggregate((a, b) => a.Key > b.Key ? a : b));
+            var datasource = Database.Definitions.Tables
+                                                 .Where(x => files.Contains(x.Name.ToLower()))
+                                                 .Select(x => new { Key = x.Build, Value = x.BuildText })
+                                                 .Distinct()
+                                                 // IDE0075: Expresión booleana simplificada en lugar del operador ternario
+                                                 .Where(x => !db2 || x.Key > (int)ExpansionFinalBuild.WotLK); // filter out non DB2/ADB clients
 
-			// order
-			datasource = datasource.OrderBy(x => x.Key);
+            // filter to the latest build for each version
+            if (mostRecent)
+                datasource = datasource.GroupBy(x => x.Value.Split('(').First()).Select(x => x.Aggregate((a, b) => a.Key > b.Key ? a : b));
+
+            // order
+            datasource = datasource.OrderBy(x => x.Key);
 
 
-			lbDefinitions.BeginUpdate();
-            
-            if (datasource.Count() == 0)
+            lbDefinitions.BeginUpdate();
+
+            if (!datasource.Any())
             {
                 lbDefinitions.DataSource = null;
             }
@@ -131,9 +135,9 @@ namespace WDBXEditor
             lblFiles.Text = Files.Count() == 1 ? "1 file" : Files.Count() + " files";
         }
 
-		private void chkBuildFilter_CheckedChanged(object sender, EventArgs e)
-		{
-			LoadBuilds(!chkBuildFilter.Checked);
-		}
-	}
+        private void ChkBuildFilter_CheckedChanged(object sender, EventArgs e)
+        {
+            LoadBuilds(!chkBuildFilter.Checked);
+        }
+    }
 }

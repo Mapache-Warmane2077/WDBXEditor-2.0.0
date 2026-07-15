@@ -14,10 +14,11 @@ using WDBXEditor.Common;
 
 namespace WDBXEditor
 {
-    public static class InstanceManager
+    public static partial class InstanceManager
     {
-        public static ConcurrentQueue<string> AutoRun = new ConcurrentQueue<string>();
-        public static Action AutoRunAdded;
+        // CA2211: Convertidos a Propiedades
+        public static ConcurrentQueue<string> AutoRun { get; set; } = new();
+        public static Action AutoRunAdded { get; set; }
 
         private static Mutex mutex;
         private static NamedPipeManager pipeServer;
@@ -28,7 +29,7 @@ namespace WDBXEditor
         /// <param name="args"></param>
         public static void InstanceCheck(string[] args)
         {
-            Func<string[], bool> ArgCheck = a => a != null && a.Length > 0 && File.Exists(a[0]);
+            static bool ArgCheck(string[] a) => a != null && a.Length > 0 && File.Exists(a[0]);
             bool isOnlyInstance = false;
 
             if (ArgCheck(args) || args.Length == 0)
@@ -58,7 +59,9 @@ namespace WDBXEditor
             if (File.Exists(stormlibPath)) //If the file exists check if it is the right architecture
             {
                 byte[] data = new byte[4096];
-                using (Stream s = new FileStream(stormlibPath, FileMode.Open, FileAccess.Read))
+
+                // CA1859: Cambiado Stream s a var s (FileStream)
+                using (var s = new FileStream(stormlibPath, FileMode.Open, FileAccess.Read))
                     s.Read(data, 0, 4096);
 
                 int PE_HEADER_ADDR = BitConverter.ToInt32(data, 0x3C);
@@ -113,29 +116,26 @@ namespace WDBXEditor
         {
             Stop(); //Stop server
 
-            using (Process p = new Process())
-            {
-                p.StartInfo.FileName = Application.ExecutablePath;
-                p.StartInfo.Arguments = string.Join(" ", files);
-                bool started = p.Start();
+            using Process p = new();
+            p.StartInfo.FileName = Application.ExecutablePath;
+            p.StartInfo.Arguments = string.Join(" ", files);
+            bool started = p.Start();
 
-                while (started && p.MainWindowHandle == IntPtr.Zero) //Await the program to fully load
-                    Thread.Sleep(50);
+            while (started && p.MainWindowHandle == IntPtr.Zero) //Await the program to fully load
+                Thread.Sleep(50);
 
-                if (Program.PrimaryInstance)
-                    Start(); //Start server
+            if (Program.PrimaryInstance)
+                Start(); //Start server
 
-                return started;
-            }
+            return started;
         }
 
         public static IEnumerable<string> GetFilesToOpen()
         {
-            HashSet<string> files = new HashSet<string>();
-            while (AutoRun.Count > 0)
+            HashSet<string> files = [];
+            while (!AutoRun.IsEmpty)
             {
-                string file;
-                if (AutoRun.TryDequeue(out file) && File.Exists(file))
+                if (AutoRun.TryDequeue(out string file) && File.Exists(file))
                     files.Add(file);
             }
             return files;
@@ -143,15 +143,14 @@ namespace WDBXEditor
 
         public static bool IsRunningAsAdmin()
         {
-            WindowsPrincipal principal = new WindowsPrincipal(WindowsIdentity.GetCurrent());
+            WindowsPrincipal principal = new(WindowsIdentity.GetCurrent());
             return principal.IsInRole(WindowsBuiltInRole.Administrator);
         }
-
 
         #region Send Data
         private static void SendData(string args)
         {
-            NamedPipeManager clientPipe = new NamedPipeManager();
+            NamedPipeManager clientPipe = new();
             if (clientPipe.Write(args))
                 Environment.Exit(0);
         }
@@ -163,9 +162,9 @@ namespace WDBXEditor
         #endregion
 
         #region Flash Methods
-        [DllImport("user32.dll")]
+        [LibraryImport("user32.dll")]
         [return: MarshalAs(UnmanagedType.Bool)]
-        static extern bool FlashWindowEx(ref FLASHWINFO pwfi);
+        private static partial bool FlashWindowEx(ref FLASHWINFO pwfi);
 
         [StructLayout(LayoutKind.Sequential)]
         internal struct FLASHWINFO
@@ -182,7 +181,7 @@ namespace WDBXEditor
             if (Type.GetType("Mono.Runtime") != null)
                 return false;
 
-            FLASHWINFO fInfo = new FLASHWINFO();
+            FLASHWINFO fInfo = new();
 
             uint FLASHW_ALL = 3;
             uint FLASHW_TIMERNOFG = 12;

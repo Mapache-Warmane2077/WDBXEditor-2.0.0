@@ -1,18 +1,19 @@
-﻿using ADGV;
-using System;
+﻿using System;
 using System.Drawing;
 using System.Windows.Forms;
 using WDBXEditor.Common;
+using AdvancedDataGridView;
 
 namespace WDBXEditor.Forms
 {
     public partial class ColourConverter : Form
     {
-        private AdvancedDataGridView _data;
+        // CAMBIO: Especificamos explícitamente [EspacioDeNombres].[Clase]
+        private AdvancedDataGridView.AdvancedDataGridView _data;
         private bool _closing = false;
 
-        private Func<Color, uint> ColourToInt = c => BitConverter.ToUInt32(new byte[] { c.B, c.G, c.R, 0 }, 0);
-        private Func<uint, Color> UIntToColor = i =>
+        private readonly Func<Color, uint> ColourToInt = c => BitConverter.ToUInt32([c.B, c.G, c.R, 0], 0);
+        private readonly Func<uint, Color> UIntToColor = i =>
         {
             var bytes = BitConverter.GetBytes(i);
             return Color.FromArgb(0, bytes[2], bytes[1], bytes[0]); //Alpha always 0
@@ -22,15 +23,16 @@ namespace WDBXEditor.Forms
         public ColourConverter()
         {
             InitializeComponent();
-            colourWheelChanged(colourWheel, null);
+            ColourWheelChanged(colourWheel, null);
         }
 
         private void ColourConverter_Load(object sender, EventArgs e)
         {
-            _data = (AdvancedDataGridView)((Main)Owner).Controls.Find("advancedDataGridView", true)[0];
+            // CAMBIO: También actualizamos el casting de la clase aquí
+            _data = (AdvancedDataGridView.AdvancedDataGridView)((Main)Owner).Controls.Find("advancedDataGridView", true)[0];
         }
 
-        private void colourWheelChanged(object sender, EventArgs e)
+        private void ColourWheelChanged(object sender, EventArgs e)
         {
             txtRed.Text = colourWheel.CurrentColour.R.ToString();
             txtGreen.Text = colourWheel.CurrentColour.G.ToString();
@@ -39,7 +41,7 @@ namespace WDBXEditor.Forms
             txtWoWVal.Text = ColourToInt(colourWheel.CurrentColour).ToString();
         }
 
-        private void txtWoWVal_KeyPress(object sender, KeyPressEventArgs e)
+        private void TxtWoWVal_KeyPress(object sender, KeyPressEventArgs e)
         {
             if (!char.IsDigit(e.KeyChar) && !char.IsControl(e.KeyChar))
             {
@@ -48,10 +50,9 @@ namespace WDBXEditor.Forms
             }
         }
 
-        private void txtWoWVal_KeyUp(object sender, KeyEventArgs e)
+        private void TxtWoWVal_KeyUp(object sender, KeyEventArgs e)
         {
-            ulong dmp;
-            if (!ulong.TryParse(txtWoWVal.Text, out dmp))
+            if (!ulong.TryParse(txtWoWVal.Text, out ulong dmp))
                 txtWoWVal.Text = "0";
             else if (dmp > uint.MaxValue)
                 txtWoWVal.Text = uint.MaxValue.ToString();
@@ -63,7 +64,7 @@ namespace WDBXEditor.Forms
             picColour.BackColor = colourWheel.CurrentColour;
         }
 
-        private void txtColourKeyPress(object sender, KeyPressEventArgs e)
+        private void TxtColourKeyPress(object sender, KeyPressEventArgs e)
         {
             if (!char.IsDigit(e.KeyChar) && !char.IsControl(e.KeyChar))
             {
@@ -72,10 +73,9 @@ namespace WDBXEditor.Forms
             }
         }
 
-        private void txtColourKeyUp(object sender, KeyEventArgs e)
+        private void TxtColourKeyUp(object sender, KeyEventArgs e)
         {
-            ulong dmp;
-            if (!ulong.TryParse(txtBlue.Text, out dmp)) //Check blue
+            if (!ulong.TryParse(txtBlue.Text, out ulong dmp)) //Check blue
                 txtBlue.Text = "0";
             else if (dmp > 255)
                 txtBlue.Text = "255";
@@ -97,18 +97,21 @@ namespace WDBXEditor.Forms
         #endregion
 
         #region Button Events
-        private void btnGet_Click(object sender, EventArgs e)
+        private void BtnGet_Click(object sender, EventArgs e)
         {
-            ulong dmp;
-            ulong.TryParse(_data.CurrentCell.Value.ToString(), out dmp);
-            if (dmp > uint.MaxValue)
-                dmp = uint.MaxValue;
+            // CA1806: Usamos el resultado de TryParse en un "if". 
+            // También agregué el "?" en Value?.ToString() para proteger de celdas nulas.
+            if (ulong.TryParse(_data.CurrentCell.Value?.ToString(), out ulong dmp))
+            {
+                if (dmp > uint.MaxValue)
+                    dmp = uint.MaxValue;
 
-            colourWheel.CurrentColour = UIntToColor((uint)dmp);
-            colourWheelChanged(colourWheel, null);
+                colourWheel.CurrentColour = UIntToColor((uint)dmp);
+                ColourWheelChanged(colourWheel, null);
+            }
         }
 
-        private void betSet_Click(object sender, EventArgs e)
+        private void BetSet_Click(object sender, EventArgs e)
         {
             uint value = ColourToInt(colourWheel.CurrentColour);
 
@@ -135,8 +138,6 @@ namespace WDBXEditor.Forms
         {
             _closing = true;
         }
-
-
         #endregion
 
     }

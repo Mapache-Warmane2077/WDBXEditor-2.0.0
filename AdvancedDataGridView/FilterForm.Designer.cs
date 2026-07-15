@@ -1,5 +1,5 @@
 ﻿
-namespace ADGV
+namespace AdvancedDataGridView
 {
     partial class FilterForm
     {
@@ -52,7 +52,7 @@ namespace ADGV
             this.button_ok.TabIndex = 0;
             this.button_ok.Text = "OK";
             this.button_ok.UseVisualStyleBackColor = true;
-            this.button_ok.Click += new System.EventHandler(this.button_ok_Click);
+            this.button_ok.Click += new System.EventHandler(this.Button_ok_Click);
             // 
             // button_cancel
             // 
@@ -63,7 +63,7 @@ namespace ADGV
             this.button_cancel.TabIndex = 1;
             this.button_cancel.Text = "Cancel";
             this.button_cancel.UseVisualStyleBackColor = true;
-            this.button_cancel.Click += new System.EventHandler(this.button_cancel_Click);
+            this.button_cancel.Click += new System.EventHandler(this.Button_cancel_Click);
             // 
             // label_columnName
             // 
@@ -85,14 +85,14 @@ namespace ADGV
             this.dgvFilter.AutoSizeColumnsMode = System.Windows.Forms.DataGridViewAutoSizeColumnsMode.Fill;
             this.dgvFilter.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             this.dgvFilter.Columns.AddRange(new System.Windows.Forms.DataGridViewColumn[] {
-            this.Filter,
-            this.Value,
-            this.Operator});
+this.Filter,
+this.Value,
+this.Operator});
             this.dgvFilter.Location = new System.Drawing.Point(7, 25);
             this.dgvFilter.Name = "dgvFilter";
             this.dgvFilter.Size = new System.Drawing.Size(478, 155);
             this.dgvFilter.TabIndex = 4;
-            this.dgvFilter.MouseDown += new System.Windows.Forms.MouseEventHandler(this.dgvFilter_MouseDown);
+            this.dgvFilter.MouseDown += new System.Windows.Forms.MouseEventHandler(this.DgvFilter_MouseDown);
             // 
             // Filter
             // 
@@ -111,9 +111,9 @@ namespace ADGV
             this.Operator.FillWeight = 60.9137F;
             this.Operator.HeaderText = "Operator";
             this.Operator.Items.AddRange(new object[] {
-            "",
-            "AND",
-            "OR"});
+"",
+"AND",
+"OR"});
             this.Operator.Name = "Operator";
             // 
             // btnReset
@@ -125,8 +125,8 @@ namespace ADGV
             this.btnReset.TabIndex = 5;
             this.btnReset.Text = "Reset";
             this.btnReset.UseVisualStyleBackColor = true;
-            this.btnReset.Click += new System.EventHandler(this.btnReset_Click);
-            // 
+            this.btnReset.Click += new System.EventHandler(this.BtnReset_Click);
+            //
             // FormCustomFilter
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);

@@ -69,8 +69,8 @@
             this.txtRed.Name = "txtRed";
             this.txtRed.Size = new System.Drawing.Size(62, 20);
             this.txtRed.TabIndex = 3;
-            this.txtRed.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.txtColourKeyPress);
-            this.txtRed.KeyUp += new System.Windows.Forms.KeyEventHandler(this.txtColourKeyUp);
+            this.txtRed.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.TxtColourKeyPress);
+            this.txtRed.KeyUp += new System.Windows.Forms.KeyEventHandler(this.TxtColourKeyUp);
             // 
             // txtGreen
             // 
@@ -79,8 +79,8 @@
             this.txtGreen.Name = "txtGreen";
             this.txtGreen.Size = new System.Drawing.Size(62, 20);
             this.txtGreen.TabIndex = 4;
-            this.txtGreen.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.txtColourKeyPress);
-            this.txtGreen.KeyUp += new System.Windows.Forms.KeyEventHandler(this.txtColourKeyUp);
+            this.txtGreen.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.TxtColourKeyPress);
+            this.txtGreen.KeyUp += new System.Windows.Forms.KeyEventHandler(this.TxtColourKeyUp);
             // 
             // txtBlue
             // 
@@ -89,8 +89,8 @@
             this.txtBlue.Name = "txtBlue";
             this.txtBlue.Size = new System.Drawing.Size(62, 20);
             this.txtBlue.TabIndex = 6;
-            this.txtBlue.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.txtColourKeyPress);
-            this.txtBlue.KeyUp += new System.Windows.Forms.KeyEventHandler(this.txtColourKeyUp);
+            this.txtBlue.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.TxtColourKeyPress);
+            this.txtBlue.KeyUp += new System.Windows.Forms.KeyEventHandler(this.TxtColourKeyUp);
             // 
             // label3
             // 
@@ -109,7 +109,7 @@
             this.btnGet.TabIndex = 7;
             this.btnGet.Text = "Get Colour";
             this.btnGet.UseVisualStyleBackColor = true;
-            this.btnGet.Click += new System.EventHandler(this.btnGet_Click);
+            this.btnGet.Click += new System.EventHandler(this.BtnGet_Click);
             // 
             // betSet
             // 
@@ -119,7 +119,7 @@
             this.betSet.TabIndex = 8;
             this.betSet.Text = "Set Colour";
             this.betSet.UseVisualStyleBackColor = true;
-            this.betSet.Click += new System.EventHandler(this.betSet_Click);
+            this.betSet.Click += new System.EventHandler(this.BetSet_Click);
             // 
             // picColour
             // 
@@ -137,8 +137,8 @@
             this.txtWoWVal.Name = "txtWoWVal";
             this.txtWoWVal.Size = new System.Drawing.Size(62, 20);
             this.txtWoWVal.TabIndex = 11;
-            this.txtWoWVal.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.txtWoWVal_KeyPress);
-            this.txtWoWVal.KeyUp += new System.Windows.Forms.KeyEventHandler(this.txtWoWVal_KeyUp);
+            this.txtWoWVal.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.TxtWoWVal_KeyPress);
+            this.txtWoWVal.KeyUp += new System.Windows.Forms.KeyEventHandler(this.TxtWoWVal_KeyUp);
             // 
             // label4
             // 
@@ -160,8 +160,8 @@
             this.colourWheel.SecondaryHues = null;
             this.colourWheel.Size = new System.Drawing.Size(187, 185);
             this.colourWheel.TabIndex = 0;
-            this.colourWheel.HueChanged += new System.EventHandler(this.colourWheelChanged);
-            this.colourWheel.SLChanged += new System.EventHandler(this.colourWheelChanged);
+            this.colourWheel.HueChanged += new System.EventHandler(this.ColourWheelChanged);
+            this.colourWheel.SLChanged += new System.EventHandler(this.ColourWheelChanged);
             // 
             // ColourConverter
             // 

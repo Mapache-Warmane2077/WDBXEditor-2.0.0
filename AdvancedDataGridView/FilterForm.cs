@@ -6,12 +6,12 @@ using System.Linq;
 using System.Text;
 using System.Windows.Forms;
 
-namespace ADGV
+namespace AdvancedDataGridView
 {
     internal partial class FilterForm : Form
     {
 
-        public List<DataGridViewRow> FilterRows { get; set; } = new List<DataGridViewRow>();
+        public List<DataGridViewRow> FilterRows { get; set; } = [];
 
         private enum FilterType
         {
@@ -21,11 +21,12 @@ namespace ADGV
             Integer
         }
 
-        private FilterType _filterType = FilterType.Unknown;
+        // IDE0044: Hacer de solo lectura
+        private readonly FilterType _filterType = FilterType.Unknown;
         private string _filterString = null;
-        private Hashtable _textStrings = new Hashtable();
+        // IDE0044 y IDE0090: Hacer de solo lectura y simplificar "new"
+        private readonly Hashtable _textStrings = [];
         private bool _activated = false;
-
 
         private FilterForm()
         {
@@ -68,31 +69,34 @@ namespace ADGV
             {
                 case FilterType.Integer:
                 case FilterType.Float:
-                    (dgvFilter.Columns["Filter"] as DataGridViewComboBoxColumn).Items.AddRange(new string[]{
+                    // IDE0300: Simplificar la inicialización de la recopilación
+                    (dgvFilter.Columns["Filter"] as DataGridViewComboBoxColumn).Items.AddRange(
+                    [
                         _textStrings["EQUALS"].ToString(),
-                        _textStrings["DOES_NOT_EQUAL"].ToString(),
-                        _textStrings["GREATER_THAN"].ToString(),
-                        _textStrings["GREATER_THAN_OR_EQUAL_TO"].ToString(),
-                        _textStrings["LESS_THAN"].ToString(),
-                        _textStrings["LESS_THAN_OR_EQUAL_TO"].ToString()
-                    });
+                _textStrings["DOES_NOT_EQUAL"].ToString(),
+                _textStrings["GREATER_THAN"].ToString(),
+                _textStrings["GREATER_THAN_OR_EQUAL_TO"].ToString(),
+                _textStrings["LESS_THAN"].ToString(),
+                _textStrings["LESS_THAN_OR_EQUAL_TO"].ToString()
+                    ]);
                     break;
 
                 default:
-                    (dgvFilter.Columns["Filter"] as DataGridViewComboBoxColumn).Items.AddRange(new string[]{
+                    // IDE0300: Simplificar la inicialización de la recopilación
+                    (dgvFilter.Columns["Filter"] as DataGridViewComboBoxColumn).Items.AddRange(
+                    [
                         _textStrings["EQUALS"].ToString(),
-                        _textStrings["DOES_NOT_EQUAL"].ToString(),
-                        _textStrings["BEGINS_WITH"].ToString(),
-                        _textStrings["DOES_NOT_BEGIN_WITH"].ToString(),
-                        _textStrings["ENDS_WITH"].ToString(),
-                        _textStrings["DOES_NOT_END_WITH"].ToString(),
-                        _textStrings["CONTAINS"].ToString(),
-                        _textStrings["DOES_NOT_CONTAIN"].ToString()
-                    });
+                _textStrings["DOES_NOT_EQUAL"].ToString(),
+                _textStrings["BEGINS_WITH"].ToString(),
+                _textStrings["DOES_NOT_BEGIN_WITH"].ToString(),
+                _textStrings["ENDS_WITH"].ToString(),
+                _textStrings["DOES_NOT_END_WITH"].ToString(),
+                _textStrings["CONTAINS"].ToString(),
+                _textStrings["DOES_NOT_CONTAIN"].ToString()
+                    ]);
                     break;
             }
         }
-
 
         private void FormCustomFilter_Load(object sender, EventArgs e)
         {
@@ -124,8 +128,8 @@ namespace ADGV
                 e.Cancel = true;
         }
 
-
-        private void dgvFilter_MouseDown(object sender, MouseEventArgs e)
+        // IDE1006: Corrección de nomenclatura
+        private void DgvFilter_MouseDown(object sender, MouseEventArgs e)
         {
             DataGridView.HitTestInfo info = dgvFilter.HitTest(e.X, e.Y);
             if (info.Type == DataGridViewHitTestType.Cell)
@@ -135,9 +139,7 @@ namespace ADGV
             }
         }
 
-
         #region Filter Methods
-
         /// <summary>
         /// Get the Filter string
         /// </summary>
@@ -148,9 +150,7 @@ namespace ADGV
                 return _filterString;
             }
         }
-
         #endregion
-
 
         #region Filter Builder
         private string BuildFilter(FilterType filterType)
@@ -159,7 +159,8 @@ namespace ADGV
             if (filterType == FilterType.Unknown)
                 column = "Convert([{0}], 'System.String')";
 
-            StringBuilder sb = new StringBuilder();
+            // IDE0090: Simplificación de "new"
+            StringBuilder sb = new();
             foreach (DataGridViewRow row in dgvFilter.Rows)
             {
                 string filter = row.Cells["Filter"].Value?.ToString() ?? "";
@@ -170,20 +171,20 @@ namespace ADGV
                 string value = row.Cells["Value"].Value.ToString();
                 bool isnumber = (filterType == FilterType.Integer || filterType == FilterType.Float);
 
-                switch(filterType)
+                switch (filterType)
                 {
                     case FilterType.String:
                     case FilterType.Unknown:
                         value = FormatFilterString(value);
                         break;
                     case FilterType.Integer:
-                        int intTest;
-                        if (!int.TryParse(value, out intTest))
+                        // IDE0018 y IDE0059: Declaración insertada y asignación innecesaria eliminada con 'out _'
+                        if (!int.TryParse(value, out _))
                             continue;
                         break;
                     case FilterType.Float:
-                        float floatTest;
-                        if (!float.TryParse(value, out floatTest))
+                        // IDE0018 y IDE0059: Declaración insertada y asignación innecesaria eliminada con 'out _'
+                        if (!float.TryParse(value, out _))
                             continue;
                         break;
                 }
@@ -191,7 +192,7 @@ namespace ADGV
                 switch (filter)
                 {
                     case "EQUALS":
-                            sb.Append($" {column} {(isnumber ? "=" : "LIKE")} '{value}'");
+                        sb.Append($" {column} {(isnumber ? "=" : "LIKE")} '{value}'");
                         break;
                     case "DOESN'T EQUAL":
                         sb.Append($" {column} {(isnumber ? "<>" : "NOT LIKE")} '{value}'");
@@ -238,17 +239,18 @@ namespace ADGV
 
             string result = sb.ToString();
             if (result.EndsWith(" AND") || result.EndsWith(" OR")) //Remove trailing AND or OR
-                result = result.Substring(0, result.Length - 3);
+                result = result[..^3]; // IDE0057: Substring se puede simplificar
 
             return result;
         }
 
-
-        private string FormatFilterString(string text)
+        // CA1822: Marcar como static
+        private static string FormatFilterString(string text)
         {
             string result = "";
             string s;
-            string[] replace = { "%", "[", "]", "*", "\"", "`", "\\" };
+            // IDE0300: Simplificar la inicialización de la recopilación
+            string[] replace = ["%", "[", "]", "*", "\"", "`", "\\"];
 
             for (int i = 0; i < text.Length; i++)
             {
@@ -261,20 +263,22 @@ namespace ADGV
 
             return result.Replace("'", "''");
         }
-
         #endregion
 
-
         #region Button Events
-        private void button_cancel_Click(object sender, EventArgs e)
+
+        // IDE1006: Corrección de nomenclatura
+        private void Button_cancel_Click(object sender, EventArgs e)
         {
             _filterString = null;
             Close();
         }
 
-        private void button_ok_Click(object sender, EventArgs e)
+        // IDE1006: Corrección de nomenclatura
+        private void Button_ok_Click(object sender, EventArgs e)
         {
-            FilterRows = dgvFilter.Rows.Cast<DataGridViewRow>().Where(x => x.Cells[0] != null).ToList();
+            // IDE0305: La inicialización de la recopilación se puede simplificar (collection expression)
+            FilterRows = [.. dgvFilter.Rows.Cast<DataGridViewRow>().Where(x => x.Cells[0] != null)];
             string filter = BuildFilter(_filterType);
 
             if (!string.IsNullOrWhiteSpace(filter))
@@ -291,12 +295,12 @@ namespace ADGV
             Close();
         }
 
-        private void btnReset_Click(object sender, EventArgs e)
+        // IDE1006: Corrección de nomenclatura
+        private void BtnReset_Click(object sender, EventArgs e)
         {
             FilterRows.Clear();
             dgvFilter.Rows.Clear();
         }
-
         #endregion
 
     }

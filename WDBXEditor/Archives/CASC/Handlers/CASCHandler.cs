@@ -5,28 +5,32 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using WDBXEditor.Archives.CASC.Constants;
+using WDBXEditor.Archives.CASC.Misc;
 using WDBXEditor.Archives.CASC.Structures;
-using WDBXEditor.Archives.FileSystem.Structures;
-using WDBXEditor.Archives.Misc;
+using WDBXEditor.Archives.CASC.Handlers; // <-- Reemplaza a FileSystem.Structures
 
 namespace WDBXEditor.Archives.CASC.Handlers
 {
     public class CASCHandler : IDisposable
     {
+        // CA1861 y IDE0300: Campo estático de solo lectura para evitar instanciar arreglos constantes repetidamente
+        private static readonly char[] Separator = [' '];
+
         public string BasePath { get; set; }
-        
-        List<IndexFile> idxFiles = new List<IndexFile>();
-        List<string> indexFiles = new List<string>();
-        ConcurrentDictionary<uint, DataFile> dataFiles = new ConcurrentDictionary<uint, DataFile>();
+
+        // IDE0044, IDE0090, IDE0028: Hacer de solo lectura e inicialización simplificada
+        private readonly List<IndexFile> idxFiles = [];
+        private readonly List<string> indexFiles = [];
+        private readonly ConcurrentDictionary<uint, DataFile> dataFiles = new();
 
         BuildInfo buildInfo;
         BuildConfig buildConfig;
         CDNConfig cdnConfig;
 
-        EncodingFile encodingFile;
-        RootFile rootFile;
-
-        Lookup3 lookup3;
+        // IDE0044: Hacer de solo lectura
+        private readonly EncodingFile encodingFile;
+        private readonly RootFile rootFile;
+        private readonly Lookup3 lookup3;
 
         public CASCHandler(string basePath)
         {
@@ -40,7 +44,7 @@ namespace WDBXEditor.Archives.CASC.Handlers
             for (var i = 0; i <= 0xF; i++)
             {
                 // Always get the last element in sequence for latest file data.
-                var idxFile = Directory.GetFiles(BasePath + "/Data/data", $"{i :x2}*.idx").Last();
+                var idxFile = Directory.GetFiles(BasePath + "/Data/data", $"{i:x2}*.idx").Last();
 
                 idxFiles.Add(new IndexFile(idxFile));
             }
@@ -59,7 +63,8 @@ namespace WDBXEditor.Archives.CASC.Handlers
             Parallel.ForEach(Directory.GetFiles(BasePath + "/Data/data", "data.*"), f =>
             {
                 var dataFile = new DataFile(File.OpenRead(f));
-                var index = Convert.ToUInt32(Path.GetExtension(f).Remove(0, 1));
+                // IDE0057: Simplificar Remove usando rangos (slicing)
+                var index = Convert.ToUInt32(Path.GetExtension(f)[1..]);
                 dataFiles.TryAdd(index, dataFile);
             });
 
@@ -119,10 +124,8 @@ namespace WDBXEditor.Archives.CASC.Handlers
                 else if (buildConfigKey.Length / 2 < 16)
                     throw new InvalidOperationException("Build config key too short");
 
-                buildConfig = new BuildConfig(BasePath, buildConfigKey);
-
-                if (buildConfig == null)
-                    throw new InvalidOperationException("Can't create build config.");
+                // IDE0270: Comprobación de nulos simplificada
+                buildConfig = new BuildConfig(BasePath, buildConfigKey) ?? throw new InvalidOperationException("Can't create build config.");
             }
 
             var cdnConfigKey = buildInfo["CDN Key"];
@@ -134,13 +137,12 @@ namespace WDBXEditor.Archives.CASC.Handlers
                 else if (cdnConfigKey.Length / 2 < 16)
                     throw new InvalidOperationException("CDN config key too short");
 
-                cdnConfig = new CDNConfig(BasePath, cdnConfigKey);
-
-                cdnConfig.Path = buildInfo["CDN Path"];
-                cdnConfig.Host = buildInfo["CDN Hosts"].Split(new[] { ' ' })[0];
-
-                if (cdnConfig == null)
-                    throw new InvalidOperationException("Can't create cdn config.");
+                // IDE0017 (Inicialización de objeto) y IDE0270 (Nulos) y CA1861/IDE0300 (Array estático)
+                cdnConfig = new CDNConfig(BasePath, cdnConfigKey)
+                {
+                    Path = buildInfo["CDN Path"],
+                    Host = buildInfo["CDN Hosts"].Split(Separator)[0]
+                } ?? throw new InvalidOperationException("Can't create cdn config.");
             }
         }
 
@@ -156,16 +158,15 @@ namespace WDBXEditor.Archives.CASC.Handlers
                     {
                         for (var j = 0; j < 0x10; j++)
                         {
-                            IndexEntry idxEntry = default(IndexEntry);
+                            // IDE0034: La expresión predeterminada se puede simplificar
+                            IndexEntry idxEntry = default;
 
                             foreach (var k in encodingEntry.Keys)
                             {
                                 if ((idxEntry = idxFiles[j][k.Slice(0, 9)]).Size != 0)
                                 {
-                                    var dataFile = dataFiles[idxEntry.Index];
-
-                                    if (dataFile == null)
-                                        throw new InvalidOperationException("Invalid data file.");
+                                    // IDE0270: Comprobación de nulos simplificada
+                                    var dataFile = dataFiles[idxEntry.Index] ?? throw new InvalidOperationException("Invalid data file.");
 
                                     var ret = DataFile.LoadBLTEEntry(idxEntry, dataFile.readStream);
 
@@ -183,7 +184,8 @@ namespace WDBXEditor.Archives.CASC.Handlers
                         // CDN indices
                         for (var j = 0x10; j < idxFiles.Count; j++)
                         {
-                            IndexEntry idxEntry = default(IndexEntry);
+                            // IDE0034: La expresión predeterminada se puede simplificar
+                            IndexEntry idxEntry = default;
 
                             foreach (var k in encodingEntry.Keys)
                             {
@@ -203,7 +205,7 @@ namespace WDBXEditor.Archives.CASC.Handlers
 
         public MemoryStream ReadFile(string name, Locales locales = Locales.EnUS)
         {
-            var hash = lookup3.Hash(name.ToUpperInvariant());
+            var hash = Lookup3.Hash(name.ToUpperInvariant());
 
             return ReadFile(rootFile[hash], locales);
         }
@@ -226,16 +228,15 @@ namespace WDBXEditor.Archives.CASC.Handlers
 
                             for (var j = 0; j < 0x10; j++)
                             {
-                                IndexEntry idxEntry = default(IndexEntry);
+                                // IDE0034: La expresión predeterminada se puede simplificar
+                                IndexEntry idxEntry = default;
 
                                 foreach (var k in encodingEntry.Keys)
                                 {
                                     if ((idxEntry = idxFiles[j][k.Slice(0, 9)]).Size != 0)
                                     {
-                                        var dataFile = dataFiles[idxEntry.Index];
-
-                                        if (dataFile == null)
-                                            throw new InvalidOperationException("Invalid data file.");
+                                        // IDE0270: Comprobación de nulos simplificada
+                                        var dataFile = dataFiles[idxEntry.Index] ?? throw new InvalidOperationException("Invalid data file.");
 
                                         yield return Tuple.Create(entry.Key, blteStream = DataFile.LoadBLTEEntry(idxEntry, dataFile.readStream));
                                     }
@@ -249,7 +250,8 @@ namespace WDBXEditor.Archives.CASC.Handlers
                             {
                                 for (var j = 0x10; j < idxFiles.Count; j++)
                                 {
-                                    IndexEntry idxEntry = default(IndexEntry);
+                                    // IDE0034: La expresión predeterminada se puede simplificar
+                                    IndexEntry idxEntry = default;
 
                                     foreach (var k in encodingEntry.Keys)
                                     {
@@ -265,8 +267,6 @@ namespace WDBXEditor.Archives.CASC.Handlers
                     }
                 }
             }
-
-            //return null;
         }
 
         public ConcurrentDictionary<ulong, MemoryStream> ReadFiles(byte[] signature, Locales locales = Locales.EnUS)
@@ -287,16 +287,15 @@ namespace WDBXEditor.Archives.CASC.Handlers
                         {
                             for (var j = 0; j < 0x10; j++)
                             {
-                                IndexEntry idxEntry = default(IndexEntry);
+                                // IDE0034: La expresión predeterminada se puede simplificar
+                                IndexEntry idxEntry = default;
 
                                 foreach (var k in encodingEntry.Keys)
                                 {
                                     if ((idxEntry = idxFiles[j][k.Slice(0, 9)]).Size != 0)
                                     {
-                                        var dataFile = dataFiles[idxEntry.Index];
-
-                                        if (dataFile == null)
-                                            throw new InvalidOperationException("Invalid data file.");
+                                        // IDE0270: Comprobación de nulos simplificada
+                                        var dataFile = dataFiles[idxEntry.Index] ?? throw new InvalidOperationException("Invalid data file.");
 
                                         var sigBuffer = new byte[signature.Length];
                                         var stream = DataFile.LoadBLTEEntry(idxEntry, dataFile.readStream);
@@ -314,7 +313,8 @@ namespace WDBXEditor.Archives.CASC.Handlers
 
                             for (var j = 0x10; j < idxFiles.Count; j++)
                             {
-                                IndexEntry idxEntry = default(IndexEntry);
+                                // IDE0034: La expresión predeterminada se puede simplificar
+                                IndexEntry idxEntry = default;
 
                                 foreach (var k in encodingEntry.Keys)
                                 {
@@ -349,7 +349,8 @@ namespace WDBXEditor.Archives.CASC.Handlers
 
         public void Dispose()
         {
-            
+            // CA1816: Llamar a GC.SuppressFinalize para evitar llamadas redundantes de los recolectores de basura
+            GC.SuppressFinalize(this);
         }
     }
 }

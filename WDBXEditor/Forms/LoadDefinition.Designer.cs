@@ -50,7 +50,7 @@ namespace WDBXEditor
 			this.btnClose.TabIndex = 2;
 			this.btnClose.Text = "Close";
 			this.btnClose.UseVisualStyleBackColor = true;
-			this.btnClose.Click += new System.EventHandler(this.btnClose_Click);
+			this.btnClose.Click += new System.EventHandler(this.BtnClose_Click);
 			// 
 			// btnLoad
 			// 
@@ -60,7 +60,7 @@ namespace WDBXEditor
 			this.btnLoad.TabIndex = 1;
 			this.btnLoad.Text = "Load";
 			this.btnLoad.UseVisualStyleBackColor = true;
-			this.btnLoad.Click += new System.EventHandler(this.btnLoad_Click);
+			this.btnLoad.Click += new System.EventHandler(this.BtnLoad_Click);
 			// 
 			// openFileDialog
 			// 
@@ -84,7 +84,7 @@ namespace WDBXEditor
 			this.btnNewWindow.TabIndex = 12;
 			this.toolTip1.SetToolTip(this.btnNewWindow, "Opens in a new instance of the program");
 			this.btnNewWindow.UseVisualStyleBackColor = true;
-			this.btnNewWindow.Click += new System.EventHandler(this.btnNewWindow_Click);
+			this.btnNewWindow.Click += new System.EventHandler(this.BtnNewWindow_Click);
 			// 
 			// lblFiles
 			// 
@@ -104,7 +104,7 @@ namespace WDBXEditor
 			this.chkBuildFilter.TabIndex = 14;
 			this.chkBuildFilter.Text = "All Builds";
 			this.chkBuildFilter.UseVisualStyleBackColor = true;
-			this.chkBuildFilter.CheckedChanged += new System.EventHandler(this.chkBuildFilter_CheckedChanged);
+			this.chkBuildFilter.CheckedChanged += new System.EventHandler(this.ChkBuildFilter_CheckedChanged);
 			// 
 			// lbDefinitions
 			// 
@@ -113,8 +113,8 @@ namespace WDBXEditor
 			this.lbDefinitions.Name = "lbDefinitions";
 			this.lbDefinitions.Size = new System.Drawing.Size(265, 199);
 			this.lbDefinitions.TabIndex = 0;
-			this.lbDefinitions.SelectedValueChanged += new System.EventHandler(this.lbDefinitions_SelectedValueChanged);
-			this.lbDefinitions.MouseDoubleClick += new System.Windows.Forms.MouseEventHandler(this.lbDefinitions_MouseDoubleClick);
+			this.lbDefinitions.SelectedValueChanged += new System.EventHandler(this.LbDefinitions_SelectedValueChanged);
+			this.lbDefinitions.MouseDoubleClick += new System.Windows.Forms.MouseEventHandler(this.LbDefinitions_MouseDoubleClick);
 			// 
 			// LoadDefinition
 			// 

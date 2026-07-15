@@ -1,16 +1,16 @@
-﻿using ADGV;
-using WDBXEditor.Common;
-using System;
-using System.ComponentModel;
-using System.Text.RegularExpressions;
-using System.Threading.Tasks;
-using System.Windows.Forms;
-using WDBXEditor.Storage;
-using System.Linq;
+﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Data;
 using System.Drawing;
 using System.Globalization;
+using System.Linq;
+using System.Text.RegularExpressions;
+using System.Threading.Tasks;
+using System.Windows.Forms;
+using AdvancedDataGridView;
+using WDBXEditor.Common;
+using WDBXEditor.Storage;
 
 namespace WDBXEditor
 {
@@ -18,7 +18,8 @@ namespace WDBXEditor
     {
         public bool Replace { get; set; } = false;
 
-        private AdvancedDataGridView _data;
+        // CAMBIO: Especificamos explícitamente [EspacioDeNombres].[Clase]
+        private AdvancedDataGridView.AdvancedDataGridView _data;
         private bool _closing = false;
         private RegexOptions replaceOptions = RegexOptions.IgnoreCase | RegexOptions.Multiline;
         private StringComparison compare = StringComparison.CurrentCultureIgnoreCase;
@@ -30,7 +31,8 @@ namespace WDBXEditor
 
         private void FindReplace_Load(object sender, EventArgs e)
         {
-            _data = (AdvancedDataGridView)((Main)Owner).Controls.Find("advancedDataGridView", true)[0];
+            // CAMBIO: Actualizamos el casting aquí también
+            _data = (AdvancedDataGridView.AdvancedDataGridView)((Main)Owner).Controls.Find("advancedDataGridView", true)[0];
             SetScreenType(Replace);
         }
 
@@ -64,12 +66,12 @@ namespace WDBXEditor
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private void btnFind_Click(object sender, EventArgs e)
+        private void BtnFind_Click(object sender, EventArgs e)
         {
             if (this.Opacity != 1) return;
 
             DataGridViewCell c = _data.CurrentCell;
-            Point r = new Point(-1, -1);
+            Point r = new(-1, -1);
 
             if (!rdoFlag.Checked)
                 r = _data.Search(txtFind.Text, chkExact.Checked, compare);
@@ -95,7 +97,7 @@ namespace WDBXEditor
             Database.ForceGC();
         }
 
-        private void btnCancel_Click(object sender, EventArgs e)
+        private void BtnCancel_Click(object sender, EventArgs e)
         {
             this.Close();
         }
@@ -106,12 +108,11 @@ namespace WDBXEditor
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private void btnReplace_Click(object sender, EventArgs e)
+        private void BtnReplace_Click(object sender, EventArgs e)
         {
             if (this.Opacity != 1) return;
-
-            DataGridViewCell c = _data.CurrentCell;
-            Point r = new Point(-1, -1);
+            _ = _data.CurrentCell;
+            Point r = new(-1, -1);
             long findflag = 0;
             GetHex(txtReplace.Text, out long replaceflag);
 
@@ -151,7 +152,6 @@ namespace WDBXEditor
                     _data.CurrentCell.Value = Convert.ChangeType(previous, _data.CurrentCell.Value.GetType());
                 }
 
-
                 _data.EndEdit();
             }
 
@@ -163,19 +163,19 @@ namespace WDBXEditor
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private void btnReplaceAll_Click(object sender, EventArgs e)
+        private void BtnReplaceAll_Click(object sender, EventArgs e)
         {
             int found = 0;
-            var start = _data.CurrentCell;
+            _ = _data.CurrentCell;
             long findflag = 0;
             GetHex(txtReplace.Text, out long replaceflag);
 
-            HashSet<Point> completedCells = new HashSet<Point>();
+            HashSet<Point> completedCells = [];
 
             bool exit = false;
             while (!exit)
             {
-                Point cell = new Point(-1, -1);
+                Point cell = new(-1, -1);
 
                 if (!rdoFlag.Checked)
                 {
@@ -183,7 +183,7 @@ namespace WDBXEditor
                 }
                 else if (rdoFlag.Checked && GetHex(txtFind.Text, out findflag))
                 {
-                    cell = _data.SearchFlag(findflag, true, completedCells);                    
+                    cell = _data.SearchFlag(findflag, true, completedCells);
                 }
 
                 if (cell.X == -1 || cell.Y == -1)
@@ -220,7 +220,7 @@ namespace WDBXEditor
             lblResult.Visible = true;
         }
 
-        private void chkCase_CheckedChanged(object sender, EventArgs e)
+        private void ChkCase_CheckedChanged(object sender, EventArgs e)
         {
             compare = chkCase.Checked ? StringComparison.CurrentCulture : StringComparison.CurrentCultureIgnoreCase;
 
@@ -232,7 +232,7 @@ namespace WDBXEditor
         #endregion
 
         #region Text Event
-        private void txtFind_TextChanged(object sender, EventArgs e)
+        private void TxtFind_TextChanged(object sender, EventArgs e)
         {
             btnFind.Enabled = txtFind.Text.Length > 0;
             if (Replace)
@@ -263,10 +263,10 @@ namespace WDBXEditor
         #endregion
 
 
-        private bool GetHex(string value, out long flag)
+        private static bool GetHex(string value, out long flag)
         {
             if (value.StartsWith("0x"))
-                value = value.Substring(2);
+                value = value[2..];
 
             bool success = long.TryParse(value, NumberStyles.HexNumber, null, out long l);
             flag = l;

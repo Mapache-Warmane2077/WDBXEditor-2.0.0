@@ -66,16 +66,16 @@ namespace WDBXEditor.Reader.FileTypes
 
             if (MaxId != 0 && Build > 12880)
             {
-                List<int> IndiciesTable = new List<int>();
-                List<short> StringLengthTable = new List<short>();
+                List<int> IndiciesTable = [];
+                List<short> StringLengthTable = [];
 
                 Dictionary<int, short> stringlengths = entry.GetStringLengths();
                 int x = 0;
                 for (int i = minmax.Item1; i <= minmax.Item2; i++)
                 {
-                    if (stringlengths.ContainsKey(i))
+                    if (stringlengths.TryGetValue(i, out short value))
                     {
-                        StringLengthTable.Add(stringlengths[i]);
+                        StringLengthTable.Add(value);
                         IndiciesTable.Add(++x);
                     }
                     else
@@ -87,7 +87,7 @@ namespace WDBXEditor.Reader.FileTypes
 
                 //Write the data
                 bw.WriteArray(IndiciesTable.ToArray());
-                bw.WriteArray(StringLengthTable.ToArray());                    
+                bw.WriteArray(StringLengthTable.ToArray());
             }
         }
     }

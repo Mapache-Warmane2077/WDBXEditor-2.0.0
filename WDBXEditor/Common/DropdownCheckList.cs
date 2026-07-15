@@ -48,13 +48,13 @@ namespace WDBXEditor.Common
         }
 
         #region Dropdown Override
-        private void cbBox_DropDown(object sender, EventArgs e)
+        private void CbBox_DropDown(object sender, EventArgs e)
         {
             if (lbItems.Items.Count > 0)
                 SetState(true);
         }
 
-        private void cbBox_DropDownClosed(object sender, EventArgs e)
+        private void CbBox_DropDownClosed(object sender, EventArgs e)
         {
             if (lbItems.ClientRectangle.Contains(this.PointToClient(MousePosition)))
                 return;
@@ -118,7 +118,7 @@ namespace WDBXEditor.Common
         }
 
         #region Button Events
-        private void btnReset_Click(object sender, EventArgs e)
+        private void BtnReset_Click(object sender, EventArgs e)
         {
             ToggleCheck(true);
         }
@@ -130,11 +130,11 @@ namespace WDBXEditor.Common
             lbItems.Enabled = this.Enabled;
         }
 
-        private void lbItems_ItemCheck(object sender, ItemCheckEventArgs e)
+        private void LbItems_ItemCheck(object sender, ItemCheckEventArgs e)
         {
             if (_loading) return;
 
-            List<string> items = new List<string>();
+            List<string> items = [];
 
             if (e.NewValue == CheckState.Checked)
             {
@@ -162,19 +162,21 @@ namespace WDBXEditor.Common
             cbBox.Items[0] = string.Join(", ", items);
         }
 
-        private void cbBox_DrawItem(object sender, DrawItemEventArgs e)
+        private void CbBox_DrawItem(object sender, DrawItemEventArgs e)
         {
-            Graphics g = e.Graphics;
+            _ = e.Graphics;
             Rectangle r = e.Bounds;
 
             if (e.Index >= 0)
             {
                 string s = (string)cbBox.Items[e.Index];
                 if (s.Length > (cbBox.Width - cbBox.Margin.Left - cbBox.Margin.Right) / 6f)
-                    s = s.Substring(0, (int)Math.Floor((cbBox.Width - cbBox.Margin.Left - cbBox.Margin.Right) / 6f) - 3) + "...";
+                    s = s[..((int)Math.Floor((cbBox.Width - cbBox.Margin.Left - cbBox.Margin.Right) / 6f) - 3)] + "...";
 
-                StringFormat sf = new StringFormat();
-                sf.Alignment = StringAlignment.Near;
+                StringFormat sf = new()
+                {
+                    Alignment = StringAlignment.Near
+                };
                 e.Graphics.DrawRectangle(new Pen(new SolidBrush(Color.Black), 2), r);
 
                 e.Graphics.FillRectangle(new SolidBrush(Color.White), r);
@@ -188,7 +190,7 @@ namespace WDBXEditor.Common
             lbItems.Items.Clear(); //Update column filter
 
             if (columns != null)
-                lbItems.Items.AddRange(columns.Cast<DataColumn>().Select(x => x.ColumnName).ToArray());
+                lbItems.Items.AddRange([.. columns.Cast<DataColumn>().Select(x => x.ColumnName)]);
             else
                 cbBox.Items[0] = "[All]";
 

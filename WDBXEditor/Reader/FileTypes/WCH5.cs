@@ -24,7 +24,7 @@ namespace WDBXEditor.Reader.FileTypes
 
         protected WDB5 WDB5CounterPart;
         protected int OffsetMapOffset = 0x30;
-        
+
         public WCH5()
         {
             HeaderSize = 0x30;
@@ -39,13 +39,14 @@ namespace WDBXEditor.Reader.FileTypes
         #region Read
         public override void ReadHeader(ref BinaryReader dbReader, string signature)
         {
-            string _filename = Path.GetFileNameWithoutExtension(FileName).ToLower();
-            WDB5CounterPart = Database.Entries
-                            .FirstOrDefault(x => x.Header.IsTypeOf<WDB5>() && Path.GetFileNameWithoutExtension(x.FileName).ToLower() == _filename)?
-                            .Header as WDB5;
+            string _filename = Path.GetFileNameWithoutExtension(FileName); // CA1862: Ya no necesitamos el .ToLower() aquí
 
-            if (WDB5CounterPart == null)
-                throw new Exception("You must have the DB2 counterpart open first to be able to read this file.");
+            WDB5CounterPart = (Database.Entries
+                            // CA1862: string.Equals en lugar de ToLower() ==
+                            .FirstOrDefault(x => x.Header.IsTypeOf<WDB5>() && string.Equals(Path.GetFileNameWithoutExtension(x.FileName), _filename, StringComparison.OrdinalIgnoreCase))?
+                            .Header as WDB5)
+                            // IDE0270: Null check simplificado con operador ??
+                            ?? throw new Exception("You must have the DB2 counterpart open first to be able to read this file.");
 
             Flags = WDB5CounterPart.Flags;
             IdIndex = WDB5CounterPart.IdIndex;
@@ -66,8 +67,8 @@ namespace WDBXEditor.Reader.FileTypes
 
         public Dictionary<int, byte[]> ReadOffsetData(BinaryReader dbReader, long pos)
         {
-            Dictionary<int, byte[]> CopyTable = new Dictionary<int, byte[]>();
-            List<OffsetEntry> offsetmap = new List<OffsetEntry>();
+            Dictionary<int, byte[]> CopyTable = [];
+            List<OffsetEntry> offsetmap = [];
 
             long indexTablePos = dbReader.BaseStream.Length - (HasIndexTable ? RecordCount * 4 : 0);
             int[] m_indexes = null;
@@ -111,7 +112,7 @@ namespace WDBXEditor.Reader.FileTypes
                     dbReader.Scrub(map.Offset);
 
                     IEnumerable<byte> recordbytes = BitConverter.GetBytes(map.Id).Concat(dbReader.ReadBytes(map.Length));
-                    CopyTable.Add(map.Id, recordbytes.ToArray());
+                    CopyTable.Add(map.Id, [.. recordbytes]);
                 }
                 else
                 {
@@ -121,7 +122,7 @@ namespace WDBXEditor.Reader.FileTypes
                     if (HasIndexTable)
                     {
                         IEnumerable<byte> newrecordbytes = BitConverter.GetBytes(m_indexes[i]).Concat(recordbytes);
-                        CopyTable.Add(m_indexes[i], newrecordbytes.ToArray());
+                        CopyTable.Add(m_indexes[i], [.. newrecordbytes]);
                     }
                     else
                     {
@@ -143,22 +144,15 @@ namespace WDBXEditor.Reader.FileTypes
         public override byte[] ReadData(BinaryReader dbReader, long pos)
         {
             Dictionary<int, byte[]> CopyTable = ReadOffsetData(dbReader, pos);
-            OffsetLengths = CopyTable.Select(x => x.Value.Length).ToArray();
-            return CopyTable.Values.SelectMany(x => x).ToArray();
+            OffsetLengths = [.. CopyTable.Select(x => x.Value.Length)];
+            return [.. CopyTable.Values.SelectMany(x => x)];
         }
 
-        internal struct OffsetEntry
+        internal struct OffsetEntry(int id, int offset, short length)
         {
-            public int Id { get; set; }
-            public int Offset { get; set; }
-            public short Length { get; set; }
-
-            public OffsetEntry(int id, int offset, short length)
-            {
-                this.Id = id;
-                this.Offset = offset;
-                this.Length = length;
-            }
+            public int Id { get; set; } = id;
+            public int Offset { get; set; } = offset;
+            public short Length { get; set; } = length;
         }
         #endregion
 
@@ -184,7 +178,7 @@ namespace WDBXEditor.Reader.FileTypes
                 OffsetMapOffset = (int)bw.BaseStream.Position;
                 bw.BaseStream.Position += entry.GetPrimaryKeys().Count() * (sizeof(int) + sizeof(int) + sizeof(short));
             }
-                
+
         }
 
         public override void WriteOffsetMap(BinaryWriter bw, DBEntry entry, List<Tuple<int, short>> OffsetMap, int record_offset = 0)
@@ -212,11 +206,11 @@ namespace WDBXEditor.Reader.FileTypes
         public override void WriteIndexTable(BinaryWriter bw, DBEntry entry)
         {
             int m = 0;
-            int[] ids = entry.GetPrimaryKeys().ToArray();
+            int[] ids = [.. entry.GetPrimaryKeys()];
 
             if (entry.Header.HasRelationshipData)
             {
-                ushort[] secondids = entry.Data.Rows.Cast<DataRow>().Select(x => x.Field<ushort>(2)).ToArray();
+                ushort[] secondids = [.. entry.Data.Rows.Cast<DataRow>().Select(x => x.Field<ushort>(2))];
 
                 //Write all of the secondary ids
                 foreach (ushort id in secondids)

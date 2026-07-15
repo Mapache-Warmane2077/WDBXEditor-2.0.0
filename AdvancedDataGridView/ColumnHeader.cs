@@ -3,7 +3,7 @@ using System.Drawing;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
-namespace ADGV
+namespace AdvancedDataGridView
 {
     [System.ComponentModel.DesignerCategory("")]
     internal class ColumnHeader : DataGridViewColumnHeaderCell
@@ -35,12 +35,14 @@ namespace ADGV
                     bool refreshed = false;
                     if (MenuStrip.FilterString.Length > 0)
                     {
-                        menuStrip_FilterChanged(this, new EventArgs());
+                        // Mayúscula inicial corregida y uso de EventArgs.Empty
+                        MenuStrip_FilterChanged(this, EventArgs.Empty);
                         refreshed = true;
                     }
                     if (MenuStrip.SortString.Length > 0)
                     {
-                        menuStrip_SortChanged(this, new EventArgs());
+                        // Mayúscula inicial corregida y uso de EventArgs.Empty
+                        MenuStrip_SortChanged(this, EventArgs.Empty);
                         refreshed = true;
                     }
                     if (!refreshed)
@@ -108,12 +110,14 @@ namespace ADGV
         }
 
         private Image _filterImage = Properties.Resources.ColumnHeader_UnFiltered;
-        private Size _filterButtonImageSize = new Size(16, 16);
+        // IDE0090: La expresión "new" se puede simplificar
+        private Size _filterButtonImageSize = new(16, 16);
         private bool _filterButtonPressed = false;
         private bool _filterButtonOver = false;
         private Rectangle _filterButtonOffsetBounds = Rectangle.Empty;
         private Rectangle _filterButtonImageBounds = Rectangle.Empty;
-        private Padding _filterButtonMargin = new Padding(3, 4, 3, 4);
+        // IDE0090: La expresión "new" se puede simplificar
+        private Padding _filterButtonMargin = new(3, 4, 3, 4);
         private bool _filterEnabled = false;
 
         public ColumnHeader(DataGridViewColumnHeaderCell cell, bool filterEnabled)
@@ -127,9 +131,8 @@ namespace ADGV
             Style = cell.Style;
             _filterEnabled = filterEnabled;
 
-            ColumnHeader oldCellt = cell as ColumnHeader;
-
-            if (oldCellt != null && oldCellt.MenuStrip != null)
+            // IDE0019: Usar coincidencia de patrones
+            if (cell is ColumnHeader oldCellt && oldCellt.MenuStrip != null)
             {
                 MenuStrip = oldCellt.MenuStrip;
                 _filterImage = oldCellt._filterImage;
@@ -137,18 +140,21 @@ namespace ADGV
                 _filterButtonOver = oldCellt._filterButtonOver;
                 _filterButtonOffsetBounds = oldCellt._filterButtonOffsetBounds;
                 _filterButtonImageBounds = oldCellt._filterButtonImageBounds;
-                MenuStrip.FilterChanged += new EventHandler(menuStrip_FilterChanged);
-                MenuStrip.SortChanged += new EventHandler(menuStrip_SortChanged);
-                MenuStrip.HexChanged += new EventHandler(menuStrip_HexChanged);
-                MenuStrip.HideChanged += new EventHandler(menuStrip_HideChanged);
+
+                // IDE1006: Mayúscula inicial en el nombre del método
+                // (Nota: al asignar un evento ya no es necesario escribir "new EventHandler", C# lo simplifica automáticamente)
+                MenuStrip.FilterChanged += MenuStrip_FilterChanged;
+                MenuStrip.SortChanged += MenuStrip_SortChanged;
+                MenuStrip.HexChanged += MenuStrip_HexChanged;
+                MenuStrip.HideChanged += MenuStrip_HideChanged;
             }
             else
             {
                 MenuStrip = new ColumnMenu(cell.OwningColumn.ValueType);
-                MenuStrip.FilterChanged += new EventHandler(menuStrip_FilterChanged);
-                MenuStrip.SortChanged += new EventHandler(menuStrip_SortChanged);
-                MenuStrip.HexChanged += new EventHandler(menuStrip_HexChanged);
-                MenuStrip.HideChanged += new EventHandler(menuStrip_HideChanged);
+                MenuStrip.FilterChanged += MenuStrip_FilterChanged;
+                MenuStrip.SortChanged += MenuStrip_SortChanged;
+                MenuStrip.HexChanged += MenuStrip_HexChanged;
+                MenuStrip.HideChanged += MenuStrip_HideChanged;
                 MenuStrip.IsSortEnabled = true;
                 MenuStrip.IsFilterEnabled = true;
             }
@@ -158,15 +164,16 @@ namespace ADGV
         {
             if (MenuStrip != null)
             {
-                MenuStrip.FilterChanged -= menuStrip_FilterChanged;
-                MenuStrip.SortChanged -= menuStrip_SortChanged;
-                MenuStrip.HexChanged -= menuStrip_HexChanged;
-                MenuStrip.HideChanged -= menuStrip_HideChanged;
+                MenuStrip.FilterChanged -= MenuStrip_FilterChanged;
+                MenuStrip.SortChanged -= MenuStrip_SortChanged;
+                MenuStrip.HexChanged -= MenuStrip_HexChanged;
+                MenuStrip.HideChanged -= MenuStrip_HideChanged;
             }
         }
 
         public override object Clone()
         {
+            // IDE0090: La expresión "new" se puede simplificar
             return new ColumnHeader(this, FilterAndSortEnabled);
         }
 
@@ -231,32 +238,41 @@ namespace ADGV
 
 
         #region Events
-        private void menuStrip_FilterChanged(object sender, EventArgs e)
+
+        // IDE1006: Corrección de nomenclatura (mayúscula inicial)
+        private void MenuStrip_FilterChanged(object sender, EventArgs e)
         {
             RefreshImage();
             RepaintCell();
-            if (FilterAndSortEnabled && FilterChanged != null)
-                FilterChanged(this, new ColumnHeaderCellEventArgs(MenuStrip, OwningColumn));
+
+            // IDE1005: La invocación del delegado se puede simplificar
+            if (FilterAndSortEnabled)
+                FilterChanged?.Invoke(this, new ColumnHeaderCellEventArgs(MenuStrip, OwningColumn));
         }
 
-        private void menuStrip_SortChanged(object sender, EventArgs e)
+        // IDE1006: Corrección de nomenclatura
+        private void MenuStrip_SortChanged(object sender, EventArgs e)
         {
             RefreshImage();
             RepaintCell();
-            if (FilterAndSortEnabled && SortChanged != null)
-                SortChanged(this, new ColumnHeaderCellEventArgs(MenuStrip, OwningColumn));
+
+            // IDE1005: La invocación del delegado se puede simplificar
+            if (FilterAndSortEnabled)
+                SortChanged?.Invoke(this, new ColumnHeaderCellEventArgs(MenuStrip, OwningColumn));
         }
 
-        private void menuStrip_HideChanged(object sender, EventArgs e)
+        // IDE1006: Corrección de nomenclatura
+        private void MenuStrip_HideChanged(object sender, EventArgs e)
         {
-            if (HideChanged != null)
-                HideChanged(this, new ColumnHeaderCellEventArgs(MenuStrip, OwningColumn));
+            // IDE1005: La invocación del delegado se puede simplificar
+            HideChanged?.Invoke(this, new ColumnHeaderCellEventArgs(MenuStrip, OwningColumn));
         }
 
-        private void menuStrip_HexChanged(object sender, EventArgs e)
+        // IDE1006: Corrección de nomenclatura
+        private void MenuStrip_HexChanged(object sender, EventArgs e)
         {
-            if (HexChanged != null)
-                HexChanged(this, new ColumnHeaderCellEventArgs(MenuStrip, OwningColumn));
+            // IDE1005: La invocación del delegado se puede simplificar
+            HexChanged?.Invoke(this, new ColumnHeaderCellEventArgs(MenuStrip, OwningColumn));
         }
         #endregion
 
@@ -298,17 +314,17 @@ namespace ADGV
         }
 
         protected override void Paint(
-            Graphics graphics,
-            Rectangle clipBounds,
-            Rectangle cellBounds,
-            int rowIndex,
-            DataGridViewElementStates cellState,
-            object value,
-            object formattedValue,
-            string errorText,
-            DataGridViewCellStyle cellStyle,
-            DataGridViewAdvancedBorderStyle advancedBorderStyle,
-            DataGridViewPaintParts paintParts)
+    Graphics graphics,
+    Rectangle clipBounds,
+    Rectangle cellBounds,
+    int rowIndex,
+    DataGridViewElementStates cellState,
+    object value,
+    object formattedValue,
+    string errorText,
+    DataGridViewCellStyle cellStyle,
+    DataGridViewAdvancedBorderStyle advancedBorderStyle,
+    DataGridViewPaintParts paintParts)
         {
             if (SortGlyphDirection != SortOrder.None)
                 SortGlyphDirection = SortOrder.None;
@@ -322,7 +338,8 @@ namespace ADGV
                 _filterButtonOffsetBounds = GetFilterBounds(true);
                 _filterButtonImageBounds = GetFilterBounds(false);
                 Rectangle buttonBounds = _filterButtonOffsetBounds;
-                if (buttonBounds != null && clipBounds.IntersectsWith(buttonBounds))
+
+                if (!buttonBounds.IsEmpty && clipBounds.IntersectsWith(buttonBounds))
                 {
                     ControlPaint.DrawBorder(graphics, buttonBounds, Color.Gray, ButtonBorderStyle.Solid);
                     buttonBounds.Inflate(-1, -1);
@@ -337,11 +354,13 @@ namespace ADGV
         {
             Rectangle cell = DataGridView.GetCellDisplayRectangle(ColumnIndex, -1, false);
 
-            Point p = new Point(
+            // IDE0090: La expresión "new" se puede simplificar
+            Point p = new(
                 (withOffset ? cell.Right : cell.Width) - _filterButtonImageSize.Width - (_filterButtonMargin.Right / 2) - 1,
                 (withOffset ? cell.Bottom : cell.Height) - _filterButtonImageSize.Height - ((cell.Height - _filterButtonImageSize.Height) / 2));
 
-            return new Rectangle(p, _filterButtonImageSize);
+            // IDE0090: La expresión "new" se puede simplificar
+            return new(p, _filterButtonImageSize);
         }
         #endregion
 
@@ -387,10 +406,10 @@ namespace ADGV
                 _filterButtonPressed = false;
                 _filterButtonOver = false;
                 RepaintCell();
-                if (_filterButtonImageBounds.Contains(e.X, e.Y) && FilterPopup != null)
-                {
-                    FilterPopup(this, new ColumnHeaderCellEventArgs(MenuStrip, OwningColumn));
-                }
+
+                // IDE1005: La invocación del delegado se puede simplificar
+                if (_filterButtonImageBounds.Contains(e.X, e.Y))
+                    FilterPopup?.Invoke(this, new ColumnHeaderCellEventArgs(MenuStrip, OwningColumn));
             }
             base.OnMouseUp(e);
         }
@@ -411,17 +430,12 @@ namespace ADGV
     }
 
     internal delegate void ColumnHeaderCellEventHandler(object sender, ColumnHeaderCellEventArgs e);
-    internal class ColumnHeaderCellEventArgs : EventArgs
+
+    // IDE0290: Usar constructor principal
+    internal class ColumnHeaderCellEventArgs(ColumnMenu filterMenu, DataGridViewColumn column) : EventArgs
     {
-        public ColumnMenu FilterMenu { get; private set; }
-
-        public DataGridViewColumn Column { get; private set; }
-
-        public ColumnHeaderCellEventArgs(ColumnMenu filterMenu, DataGridViewColumn column)
-        {
-            FilterMenu = filterMenu;
-            Column = column;
-        }
+        public ColumnMenu FilterMenu { get; private set; } = filterMenu;
+        public DataGridViewColumn Column { get; private set; } = column;
     }
 
 }

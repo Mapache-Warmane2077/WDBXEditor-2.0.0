@@ -61,7 +61,7 @@
             this.btnLoad.TabIndex = 7;
             this.btnLoad.Text = "Load";
             this.btnLoad.UseVisualStyleBackColor = true;
-            this.btnLoad.Click += new System.EventHandler(this.btnLoad_Click);
+            this.btnLoad.Click += new System.EventHandler(this.BtnLoad_Click);
             // 
             // btnClose
             // 
@@ -71,7 +71,7 @@
             this.btnClose.TabIndex = 8;
             this.btnClose.Text = "Close";
             this.btnClose.UseVisualStyleBackColor = true;
-            this.btnClose.Click += new System.EventHandler(this.btnClose_Click);
+            this.btnClose.Click += new System.EventHandler(this.BtnClose_Click);
             // 
             // openFileDialog
             // 
@@ -93,7 +93,7 @@
             this.btnBrowse.TabIndex = 2;
             this.btnBrowse.Text = "Browse";
             this.btnBrowse.UseVisualStyleBackColor = true;
-            this.btnBrowse.Click += new System.EventHandler(this.btnBrowse_Click);
+            this.btnBrowse.Click += new System.EventHandler(this.BtnBrowse_Click);
             // 
             // label1
             // 
@@ -188,7 +188,7 @@
             this.rdoFixIds.Text = "Fix Ids";
             this.toolTip1.SetToolTip(this.rdoFixIds, "This will increment all Ids so that there are no duplicates");
             this.rdoFixIds.UseVisualStyleBackColor = true;
-            this.rdoFixIds.CheckedChanged += new System.EventHandler(this.chkFixIds_CheckedChanged);
+            this.rdoFixIds.CheckedChanged += new System.EventHandler(this.ChkFixIds_CheckedChanged);
             // 
             // rdoNewest
             // 
@@ -200,7 +200,7 @@
             this.rdoNewest.Text = "Take Newest";
             this.toolTip1.SetToolTip(this.rdoNewest, "This will override previous data if a newer row with the same Id is encountered");
             this.rdoNewest.UseVisualStyleBackColor = true;
-            this.rdoNewest.CheckedChanged += new System.EventHandler(this.chkNewest_CheckedChanged);
+            this.rdoNewest.CheckedChanged += new System.EventHandler(this.ChkNewest_CheckedChanged);
             // 
             // label4
             // 

@@ -16,7 +16,7 @@ namespace WDBXEditor
     public partial class EditDefinition : Form
     {
         private Table currentTable;
-        private BindingSource bindingSource = new BindingSource();
+        private readonly BindingSource bindingSource = [];
 
         public EditDefinition()
         {
@@ -40,7 +40,7 @@ namespace WDBXEditor
             string buildFilter = cbBuild.Text;
             string textFilter = txtFilter.Text;
 
-            DataTable dt = new DataTable();
+            DataTable dt = new();
             dt.Columns.Add("Key", typeof(Table));
             dt.Columns.Add("Value", typeof(string));
 
@@ -87,13 +87,12 @@ namespace WDBXEditor
 
 
         #region Button Events
-        private void btnSave_Click(object sender, EventArgs e)
+        private void BtnSave_Click(object sender, EventArgs e)
         {
-            int build;
             List<Field> dataSource = (List<Field>)(((BindingSource)dgvDefintion.DataSource).DataSource);
 
             //Build check
-            if (!int.TryParse(txtBuild.Text, out build) || build == 0)
+            if (!int.TryParse(txtBuild.Text, out int build) || build == 0)
             {
                 MessageBox.Show("Please enter a valid build number.");
                 return;
@@ -122,7 +121,7 @@ namespace WDBXEditor
 
             currentTable.Build = int.Parse(txtBuild.Text);
             currentTable.Name = Path.GetFileNameWithoutExtension(txtFileName.Text);
-            currentTable.Fields = new List<Field>(dataSource);
+            currentTable.Fields = [.. dataSource];
             currentTable.Load();
 
             //Check the amount of matches we have to prevent duplicate definitions
@@ -149,28 +148,32 @@ namespace WDBXEditor
             }
         }
 
-        private void btnNew_Click(object sender, EventArgs e)
+        private void BtnNew_Click(object sender, EventArgs e)
         {
-            Table tmp = new Table();
-            tmp.Build = 0;
-            tmp.Name = "";
-            tmp.Fields = new List<Field>();
+            Table tmp = new()
+            {
+                Build = 0,
+                Name = "",
+                Fields = []
+            };
             LoadTable(tmp);
         }
 
-        private void btnCopy_Click(object sender, EventArgs e)
+        private void BtnCopy_Click(object sender, EventArgs e)
         {
             if (lbFiles.SelectedItem == null)
                 return;
 
             Table tbl = (Table)(((DataRowView)lbFiles.SelectedItem).Row[0]);
-            Table tmp = new Table();
-            tmp.Name = tbl.Name;
-            tmp.Fields = new List<Field>(tbl.Fields);
+            Table tmp = new()
+            {
+                Name = tbl.Name,
+                Fields = [.. tbl.Fields]
+            };
             LoadTable(tmp);
         }
 
-        private void btnDelete_Click(object sender, EventArgs e)
+        private void BtnDelete_Click(object sender, EventArgs e)
         {
             if (lbFiles.SelectedItem == null)
                 return;
@@ -180,7 +183,7 @@ namespace WDBXEditor
             LoadDefinitions(true);
         }
 
-        private void btnReset_Click(object sender, EventArgs e)
+        private void BtnReset_Click(object sender, EventArgs e)
         {
             txtFilter.Text = "";
             cbBuild.Text = "";
@@ -188,17 +191,17 @@ namespace WDBXEditor
         #endregion
 
         #region ListBox Events
-        private void txtFilter_TextChanged(object sender, EventArgs e)
+        private void TxtFilter_TextChanged(object sender, EventArgs e)
         {
             bindingSource.Filter = $"([Value] LIKE '%{txtFilter.Text}%') AND [Value] LIKE '%{cbBuild.Text}%'";
         }
 
-        private void cbBuild_SelectedIndexChanged(object sender, EventArgs e)
+        private void CbBuild_SelectedIndexChanged(object sender, EventArgs e)
         {
             bindingSource.Filter = $"([Value] LIKE '%{txtFilter.Text}%') AND [Value] LIKE '%{cbBuild.Text}%'";
         }
 
-        private void lbFiles_MouseDoubleClick(object sender, MouseEventArgs e)
+        private void LbFiles_MouseDoubleClick(object sender, MouseEventArgs e)
         {
             int index = this.lbFiles.IndexFromPoint(e.Location);
             if (index != ListBox.NoMatches)
@@ -207,10 +210,10 @@ namespace WDBXEditor
                 LoadTable(tbl);
             }
         }
-        #endregion]
+        #endregion
 
         #region DataGridView Events
-        private void dgvDefintion_CellValueChanged(object sender, DataGridViewCellEventArgs e)
+        private void DgvDefintion_CellValueChanged(object sender, DataGridViewCellEventArgs e)
         {
             if (currentTable == null) return;
 
@@ -231,7 +234,7 @@ namespace WDBXEditor
             }
         }
 
-        private void dgvDefintion_CellMouseDown(object sender, DataGridViewCellMouseEventArgs e)
+        private void DgvDefintion_CellMouseDown(object sender, DataGridViewCellMouseEventArgs e)
         {
             DataGridView.HitTestInfo info = dgvDefintion.HitTest(e.X, e.Y);
             if (info.Type == DataGridViewHitTestType.Cell)
@@ -241,7 +244,7 @@ namespace WDBXEditor
             }
         }
 
-        private void dgvDefintion_DataBindingComplete(object sender, DataGridViewBindingCompleteEventArgs e)
+        private void DgvDefintion_DataBindingComplete(object sender, DataGridViewBindingCompleteEventArgs e)
         {
             //Reset speed improvements
             dgvDefintion.RowHeadersVisible = true;
@@ -250,7 +253,7 @@ namespace WDBXEditor
         }
         #endregion
 
-        private void dgvDefintion_RowPostPaint(object sender, DataGridViewRowPostPaintEventArgs e)
+        private void DgvDefintion_RowPostPaint(object sender, DataGridViewRowPostPaintEventArgs e)
         {
             var grid = sender as DataGridView;
             var rowIdx = (e.RowIndex + 1).ToString();

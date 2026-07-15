@@ -9,7 +9,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
-namespace ADGV
+namespace AdvancedDataGridView
 {
 
     [System.ComponentModel.DesignerCategory("")]
@@ -18,7 +18,7 @@ namespace ADGV
         public event EventHandler SortStringChanged;
         public event EventHandler FilterStringChanged;
 
-        public ContextMenu HeaderContext { get; set; }
+        public ContextMenuStrip HeaderContext { get; set; }
         public bool FilterAndSortEnabled { get; set; }
         public string FilterString
         {
@@ -54,17 +54,20 @@ namespace ADGV
         }
 
 
-        private List<string> sortorderList = new List<string>();
-        private List<string> filterorderList = new List<string>();
-        private List<string> filteredColumns = new List<string>();
-
+        private readonly List<string> sortorderList = [];
+        private readonly List<string> filterorderList = [];
+        private readonly List<string> filteredColumns = [];
         private string sortString = string.Empty;
         private string filterString = string.Empty;
         private object[] _copydata;
-        private DataColumn primarykey => PrimaryKey;
 
-		private Dictionary<int, MinMax> BitCounts;
-		
+        // Se cambió el nombre para que inicie con mayúscula.
+        // Al llamarse originalmente "InternalPrimaryKey" y devolver "PrimaryKey",
+        // si solo cambiábamos la letra iba a chocar consigo mismo, así que lo renombramos:
+        private DataColumn InternalPrimaryKey => PrimaryKey;
+
+        private Dictionary<int, MinMax> BitCounts;
+
         public AdvancedDataGridView()
         {
             DoubleBuffered = true;
@@ -90,7 +93,8 @@ namespace ADGV
         protected override void OnColumnAdded(DataGridViewColumnEventArgs e)
         {
             e.Column.SortMode = DataGridViewColumnSortMode.Programmatic;
-            ColumnHeader cell = new ColumnHeader(e.Column.HeaderCell, FilterAndSortEnabled);
+            // IDE0090: La expresión "new" se puede simplificar
+            ColumnHeader cell = new(e.Column.HeaderCell, FilterAndSortEnabled);
             SetEvents(cell);
             e.Column.MinimumWidth = cell.MinimumSize.Width;
             if (ColumnHeadersHeight < cell.MinimumSize.Height)
@@ -102,12 +106,14 @@ namespace ADGV
 
         public void SetEvents(DataGridViewColumnHeaderCell header)
         {
-            var cell = header as ColumnHeader;
-            cell.SortChanged += new ColumnHeaderCellEventHandler(cell_SortChanged);
-            cell.FilterChanged += new ColumnHeaderCellEventHandler(cell_FilterChanged);
-            cell.FilterPopup += new ColumnHeaderCellEventHandler(cell_FilterPopup);
-            cell.HideChanged += new ColumnHeaderCellEventHandler(cell_HideChanged);
-            cell.HexChanged += new ColumnHeaderCellEventHandler(cell_HexChanged);
+            if (header is ColumnHeader cell)
+            {
+                cell.SortChanged += Cell_SortChanged;
+                cell.FilterChanged += Cell_FilterChanged;
+                cell.FilterPopup += Cell_FilterPopup;
+                cell.HideChanged += Cell_HideChanged;
+                cell.HexChanged += Cell_HexChanged;
+            }
         }
 
         protected override void OnColumnRemoved(DataGridViewColumnEventArgs e)
@@ -116,18 +122,18 @@ namespace ADGV
             filterorderList.Remove(e.Column.Name);
             sortorderList.Remove(e.Column.Name);
 
-            ColumnHeader cell = e.Column.HeaderCell as ColumnHeader;
-            if (cell != null)
+            if (e.Column.HeaderCell is ColumnHeader cell)
             {
-                cell.SortChanged -= cell_SortChanged;
-                cell.FilterChanged -= cell_FilterChanged;
-                cell.FilterPopup -= cell_FilterPopup;
-                cell.HideChanged -= cell_HideChanged;
-                cell.HexChanged -= cell_HexChanged;
+                cell.SortChanged -= Cell_SortChanged;
+                cell.FilterChanged -= Cell_FilterChanged;
+                cell.FilterPopup -= Cell_FilterPopup;
+                cell.HideChanged -= Cell_HideChanged;
+                cell.HexChanged -= Cell_HexChanged;
             }
+
             base.OnColumnRemoved(e);
         }
-        
+
         #endregion
 
 
@@ -165,58 +171,35 @@ namespace ADGV
             base.OnCellValueChanged(e);
         }
 
-		//protected override void OnCellValidating(DataGridViewCellValidatingEventArgs e)
-		//{
-		//	if(BitCounts.ContainsKey(e.ColumnIndex))
-		//	{
-		//		var bitcount = BitCounts[e.ColumnIndex];
-		//		if(bitcount.IsSingle &&  float.TryParse(e.FormattedValue.ToString(), out float fVal))
-		//		{
-		//			e.Cancel = fVal < (float)bitcount.MinVal || fVal > (float)bitcount.MaxVal;
-		//		}
-		//		if(bitcount.Signed && long.TryParse(e.FormattedValue.ToString(), out long val))
-		//		{
-		//			e.Cancel = val < (long)bitcount.MinVal || val > (long)bitcount.MaxVal;
-		//		}
-		//		else if(ulong.TryParse(e.FormattedValue.ToString(), out ulong val2))
-		//		{
-		//			e.Cancel = val2 > (ulong)bitcount.MaxVal;
-		//		}
-		//	}
-
-		//	base.OnCellValidating(e);
-		//}
-
-		public bool ValidValue(int index, object value)
-		{
-			if (BitCounts.ContainsKey(index))
-			{
-				var bitcount = BitCounts[index];
-				if (bitcount.IsSingle && float.TryParse(value.ToString(), out float fVal))
-				{
-					return fVal >= (float)bitcount.MinVal && fVal <= (float)bitcount.MaxVal;
-				}
-				if (bitcount.Signed && long.TryParse(value.ToString(), out long val))
-				{
-					return (val >= (long)bitcount.MinVal && val <= (long)bitcount.MaxVal);
-				}
-				else if (ulong.TryParse(value.ToString(), out ulong val2))
-				{
-					return val2 <= (ulong)bitcount.MaxVal;
-				}
-			}
-
-			return true;
-		}
-
-		#endregion
-
-
-		#region Filter Methods
-
-		private string BuildFilterString()
+        public bool ValidValue(int index, object value)
         {
-            StringBuilder sb = new StringBuilder("");
+            if (BitCounts.TryGetValue(index, out var bitcount))
+            {
+                if (bitcount.IsSingle && float.TryParse(value.ToString(), out float fVal))
+                {
+                    return fVal >= (float)bitcount.MinVal && fVal <= (float)bitcount.MaxVal;
+                }
+                if (bitcount.Signed && long.TryParse(value.ToString(), out long val))
+                {
+                    return val >= (long)bitcount.MinVal && val <= (long)bitcount.MaxVal;
+                }
+                else if (ulong.TryParse(value.ToString(), out ulong val2))
+                {
+                    return val2 <= (ulong)bitcount.MaxVal;
+                }
+            }
+
+            return true;
+        }
+
+        #endregion
+
+
+        #region Filter Methods
+
+        private string BuildFilterString()
+        {
+            StringBuilder sb = new("");
             string appx = "";
 
             foreach (string filterOrder in filterorderList)
@@ -225,8 +208,7 @@ namespace ADGV
 
                 if (Column != null)
                 {
-                    ColumnHeader cell = Column.HeaderCell as ColumnHeader;
-                    if (cell != null)
+                    if (Column.HeaderCell is ColumnHeader cell)
                     {
                         if (cell.FilterAndSortEnabled && cell.ActiveFilterType != ColumnMenu.FilterType.None)
                         {
@@ -239,7 +221,7 @@ namespace ADGV
             return sb.ToString();
         }
 
-        private void cell_FilterPopup(object sender, ColumnHeaderCellEventArgs e)
+        private void Cell_FilterPopup(object sender, ColumnHeaderCellEventArgs e)
         {
             if (Columns.Contains(e.Column))
             {
@@ -249,19 +231,23 @@ namespace ADGV
                 System.Drawing.Rectangle rect = GetCellDisplayRectangle(column.Index, -1, true);
 
                 if (filteredColumns.Contains(column.Name))
-                    filterMenu.Show(this, rect.Left, rect.Bottom, false);
+                    // Se eliminó el "false"
+                    filterMenu.Show(this, rect.Left, rect.Bottom);
                 else
                 {
                     filteredColumns.Add(column.Name);
-                    if (filterorderList.Count() > 0 && filterorderList.Last() == column.Name)
-                        filterMenu.Show(this, rect.Left, rect.Bottom, true);
+
+                    if (filterorderList.Count > 0 && filterorderList.Last() == column.Name)
+                        // Se eliminó el "true"
+                        filterMenu.Show(this, rect.Left, rect.Bottom);
                     else
-                        filterMenu.Show(this, rect.Left, rect.Bottom, ColumnMenu.GetValuesForFilter(this, column.Name));
+                        // Se eliminó el "ColumnMenu.GetValuesForFilter(...)"
+                        filterMenu.Show(this, rect.Left, rect.Bottom);
                 }
             }
         }
 
-        private void cell_FilterChanged(object sender, ColumnHeaderCellEventArgs e)
+        private void Cell_FilterChanged(object sender, ColumnHeaderCellEventArgs e)
         {
             if (Columns.Contains(e.Column))
             {
@@ -283,7 +269,7 @@ namespace ADGV
 
         private string BuildSortString()
         {
-            StringBuilder sb = new StringBuilder("");
+            StringBuilder sb = new("");
             string appx = "";
 
             foreach (string sortOrder in sortorderList)
@@ -292,8 +278,7 @@ namespace ADGV
 
                 if (column != null)
                 {
-                    ColumnHeader cell = column.HeaderCell as ColumnHeader;
-                    if (cell != null)
+                    if (column.HeaderCell is ColumnHeader cell)
                     {
                         if (cell.FilterAndSortEnabled && cell.ActiveSortType != ColumnMenu.SortType.None)
                         {
@@ -307,7 +292,8 @@ namespace ADGV
             return sb.ToString();
         }
 
-        private void cell_SortChanged(object sender, ColumnHeaderCellEventArgs e)
+        // IDE1006: Corrección de nomenclatura
+        private void Cell_SortChanged(object sender, ColumnHeaderCellEventArgs e)
         {
             if (Columns.Contains(e.Column))
             {
@@ -321,20 +307,22 @@ namespace ADGV
             }
         }
 
-        private void cell_HideChanged(object sender, ColumnHeaderCellEventArgs e)
+        // IDE1006: Corrección de nomenclatura
+        private void Cell_HideChanged(object sender, ColumnHeaderCellEventArgs e)
         {
             if (Columns.Contains(e.Column))
             {
-                if (e.Column.Name == primarykey.ColumnName)
+                if (e.Column.Name == InternalPrimaryKey.ColumnName)
                     return;
 
                 e.Column.Visible = false;
             }
         }
 
-        private void cell_HexChanged(object sender, ColumnHeaderCellEventArgs e)
+        // IDE1006: Corrección de nomenclatura
+        private void Cell_HexChanged(object sender, ColumnHeaderCellEventArgs e)
         {
-            if (e.Column.DefaultCellStyle.Tag?.ToString().IndexOf('X') == 0)
+            if (e.Column.DefaultCellStyle.Tag?.ToString().StartsWith('X') == true) // CA1858 aplicado aquí también por coherencia
                 e.Column.DefaultCellStyle.Tag = "";
             else
                 e.Column.DefaultCellStyle.Tag = $"X";
@@ -350,19 +338,20 @@ namespace ADGV
         {
             if (e != null && e.Value != null)
             {
-                if ((this.Columns[e.ColumnIndex].DefaultCellStyle.Tag?.ToString().IndexOf('X') ?? -1) == 0)
+                // CA1866: Cambiado "X" (string) por 'X' (char) usando comillas simples
+                if (this.Columns[e.ColumnIndex].DefaultCellStyle.Tag?.ToString().StartsWith('X') == true)
                 {
                     string value = e.Value.ToString();
-                    if (value.StartsWith("0x"))
-                        value = value.Substring(2);
+                    if (value.StartsWith("0x")) // Nota: Aquí "0x" se queda igual porque son DOS caracteres
+                        value = value[2..]; // IDE0057: Substring se puede simplificar
 
-                    long l = 0; ulong u = 0;
-                    if (long.TryParse(value, NumberStyles.HexNumber, null, out l))
+                    // IDE0018 y IDE0059: Variables en línea y asignaciones innecesarias eliminadas
+                    if (long.TryParse(value, NumberStyles.HexNumber, null, out long l))
                     {
                         e.Value = Convert.ChangeType(l, e.DesiredType);
                         e.ParsingApplied = true;
                     }
-                    else if (ulong.TryParse(value, NumberStyles.HexNumber, null, out u))
+                    else if (ulong.TryParse(value, NumberStyles.HexNumber, null, out ulong u))
                     {
                         e.Value = Convert.ChangeType(u, e.DesiredType);
                         e.ParsingApplied = true;
@@ -370,21 +359,22 @@ namespace ADGV
                 }
             }
             else
-			{
-				base.OnCellParsing(e);
-			}
+            {
+                base.OnCellParsing(e);
+            }
         }
 
         protected override void OnCellFormatting(DataGridViewCellFormattingEventArgs e)
         {
             string tag = this.Columns[e.ColumnIndex].DefaultCellStyle.Tag?.ToString() ?? "";
 
-            if (e != null && tag.IndexOf('X') == 0)
+            // CA1858: Use "StartsWith" en lugar de comparar el resultado de "IndexOf" con 0
+            if (e != null && tag.StartsWith('X'))
             {
                 if (e.Value != null)
                 {
-                    long value = 0;
-                    if (long.TryParse(e.Value.ToString(), out value))
+                    // IDE0018 y IDE0059: Variables en línea y asignación innecesaria eliminada
+                    if (long.TryParse(e.Value.ToString(), out long value))
                     {
                         e.Value = "0x" + value.ToString(tag);
                         e.FormattingApplied = true;
@@ -402,7 +392,7 @@ namespace ADGV
         {
             if (SelectedRows.Count > 0)
                 _copydata = ((DataRowView)CurrentRow.DataBoundItem).Row.ItemArray;
-            else if(SelectedCells.Count > 0)
+            else if (SelectedCells.Count > 0)
                 _copydata = ((DataRowView)CurrentCell.OwningRow.DataBoundItem).Row.ItemArray;
         }
 
@@ -417,14 +407,14 @@ namespace ADGV
 
         public void ClearCopyData()
         {
-			Array.Resize(ref _copydata, 0);
+            Array.Resize(ref _copydata, 0);
         }
         #endregion
 
         public void SetVisible(int index, bool value)
         {
-            if (primarykey == null) return;
-            if (index == primarykey.Ordinal) return;
+            if (InternalPrimaryKey == null) return;
+            if (index == InternalPrimaryKey.Ordinal) return;
             Columns[index].Visible = value;
         }
 
@@ -433,10 +423,10 @@ namespace ADGV
             Task.Run(() => Init());
             base.OnDataBindingComplete(e);
 
-			if ((DataSource as BindingSource)?.DataSource as DataTable != null)
-				BuildMinMaxArray();
+            if ((DataSource as BindingSource)?.DataSource as DataTable != null)
+                BuildMinMaxArray();
 
-		}
+        }
 
         protected override void OnDataError(bool displayErrorDialogIfNoHandler, DataGridViewDataErrorEventArgs e)
         {
@@ -446,34 +436,36 @@ namespace ADGV
 
 
 
-		private void BuildMinMaxArray()
-		{
-			BitCounts = new Dictionary<int, MinMax>();
+        private void BuildMinMaxArray()
+        {
+            // IDE0028: La inicialización de la recopilación se puede simplificar
+            BitCounts = [];
 
-			var source = ((DataTable)((BindingSource)DataSource).DataSource);
-			foreach(DataColumn col in source.Columns)
-			{
-				if(col.ExtendedProperties.ContainsKey("MaxValue"))
-				{
-					MinMax minmax = new MinMax()
-					{
-						Signed = col.ExtendedProperties.ContainsKey("MinValue"),
-						MaxVal = col.ExtendedProperties["MaxValue"],
-						MinVal = col.ExtendedProperties.Contains("MinValue") ? col.ExtendedProperties["MinValue"] : 0,
-						IsSingle = col.DataType == typeof(float)
-					};
+            var source = ((DataTable)((BindingSource)DataSource).DataSource);
+            foreach (DataColumn col in source.Columns)
+            {
+                if (col.ExtendedProperties.ContainsKey("MaxValue"))
+                {
+                    // IDE0090: La expresión "new" se puede simplificar
+                    MinMax minmax = new()
+                    {
+                        Signed = col.ExtendedProperties.ContainsKey("MinValue"),
+                        MaxVal = col.ExtendedProperties["MaxValue"],
+                        MinVal = col.ExtendedProperties.Contains("MinValue") ? col.ExtendedProperties["MinValue"] : 0,
+                        IsSingle = col.DataType == typeof(float)
+                    };
 
-					BitCounts.Add(source.Columns.IndexOf(col), minmax);
-				}
-			}
-		}
+                    BitCounts.Add(source.Columns.IndexOf(col), minmax);
+                }
+            }
+        }
 
-		internal class MinMax
-		{
-			public object MinVal;
-			public object MaxVal;
-			public bool Signed;
-			public bool IsSingle;
-		}
+        internal class MinMax
+        {
+            public object MinVal;
+            public object MaxVal;
+            public bool Signed;
+            public bool IsSingle;
+        }
     }
 }

@@ -22,7 +22,7 @@ namespace WDBXEditor
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
 
-			UpdateManager.Clean();
+            UpdateManager.Clean();
 
             if (args != null && args.Length > 0)
             {
@@ -36,9 +36,9 @@ namespace WDBXEditor
             else
             {
                 Application.Run(new Main()); //Default
-            }            
+            }
 
             InstanceManager.Stop();
-        }    
+        }
     }
 }

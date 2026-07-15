@@ -49,7 +49,7 @@
             this.txtFind.Name = "txtFind";
             this.txtFind.Size = new System.Drawing.Size(204, 20);
             this.txtFind.TabIndex = 0;
-            this.txtFind.TextChanged += new System.EventHandler(this.txtFind_TextChanged);
+            this.txtFind.TextChanged += new System.EventHandler(this.TxtFind_TextChanged);
             // 
             // label1
             // 
@@ -86,7 +86,7 @@
             this.btnFind.TabIndex = 2;
             this.btnFind.Text = "Find Next";
             this.btnFind.UseVisualStyleBackColor = true;
-            this.btnFind.Click += new System.EventHandler(this.btnFind_Click);
+            this.btnFind.Click += new System.EventHandler(this.BtnFind_Click);
             // 
             // btnReplace
             // 
@@ -97,7 +97,7 @@
             this.btnReplace.TabIndex = 3;
             this.btnReplace.Text = "Replace";
             this.btnReplace.UseVisualStyleBackColor = true;
-            this.btnReplace.Click += new System.EventHandler(this.btnReplace_Click);
+            this.btnReplace.Click += new System.EventHandler(this.BtnReplace_Click);
             // 
             // btnReplaceAll
             // 
@@ -108,7 +108,7 @@
             this.btnReplaceAll.TabIndex = 4;
             this.btnReplaceAll.Text = "Replace All";
             this.btnReplaceAll.UseVisualStyleBackColor = true;
-            this.btnReplaceAll.Click += new System.EventHandler(this.btnReplaceAll_Click);
+            this.btnReplaceAll.Click += new System.EventHandler(this.BtnReplaceAll_Click);
             // 
             // btnCancel
             // 
@@ -118,7 +118,7 @@
             this.btnCancel.TabIndex = 5;
             this.btnCancel.Text = "Cancel";
             this.btnCancel.UseVisualStyleBackColor = true;
-            this.btnCancel.Click += new System.EventHandler(this.btnCancel_Click);
+            this.btnCancel.Click += new System.EventHandler(this.BtnCancel_Click);
             // 
             // lblResult
             // 
@@ -139,7 +139,7 @@
             this.chkCase.TabIndex = 7;
             this.chkCase.Text = "Match Case";
             this.chkCase.UseVisualStyleBackColor = true;
-            this.chkCase.CheckedChanged += new System.EventHandler(this.chkCase_CheckedChanged);
+            this.chkCase.CheckedChanged += new System.EventHandler(this.ChkCase_CheckedChanged);
             // 
             // chkExact
             // 

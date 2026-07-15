@@ -64,8 +64,8 @@
             this.txtText.ScrollBars = System.Windows.Forms.ScrollBars.Both;
             this.txtText.Size = new System.Drawing.Size(514, 319);
             this.txtText.TabIndex = 0;
-            this.txtText.Enter += new System.EventHandler(this.txtText_Enter);
-            this.txtText.Leave += new System.EventHandler(this.txtText_Leave);
+            this.txtText.Enter += new System.EventHandler(this.TxtText_Enter);
+            this.txtText.Leave += new System.EventHandler(this.TxtText_Leave);
             // 
             // toolStrip1
             // 
@@ -103,7 +103,7 @@
             this.btnFind.Name = "btnFind";
             this.btnFind.Size = new System.Drawing.Size(23, 20);
             this.btnFind.Text = "toolStripButton1";
-            this.btnFind.Click += new System.EventHandler(this.btnFind_Click);
+            this.btnFind.Click += new System.EventHandler(this.BtnFind_Click);
             // 
             // toolStripSeparator1
             // 
@@ -126,7 +126,7 @@
             this.btnSave.TabIndex = 13;
             this.btnSave.Text = "Save";
             this.btnSave.UseVisualStyleBackColor = true;
-            this.btnSave.Click += new System.EventHandler(this.btnSave_Click);
+            this.btnSave.Click += new System.EventHandler(this.BtnSave_Click);
             // 
             // btnClose
             // 
@@ -138,7 +138,7 @@
             this.btnClose.TabIndex = 14;
             this.btnClose.Text = "Close";
             this.btnClose.UseVisualStyleBackColor = true;
-            this.btnClose.Click += new System.EventHandler(this.btnClose_Click);
+            this.btnClose.Click += new System.EventHandler(this.BtnClose_Click);
             // 
             // TextEditor
             // 

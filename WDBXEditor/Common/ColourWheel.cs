@@ -161,7 +161,7 @@ namespace WDBXEditor.Common
             x += wheelBitmap.Width / 2;
             y += wheelBitmap.Width / 2;
             Color c = ToGray(HslToRgb(new HslColor(hue, 255, 128))) > 128 ? Color.Black : Color.White;
-            using (Pen p = new Pen(c))
+            using (Pen p = new(c))
             {
                 pe.Graphics.DrawEllipse(p, x - 3, y - 3, 6, 6);
             }
@@ -179,10 +179,8 @@ namespace WDBXEditor.Common
                     x += wheelBitmap.Width / 2;
                     y += wheelBitmap.Width / 2;
                     c = ToGray(HslToRgb(new HslColor(sHue, 255, 128))) > 128 ? Color.Black : Color.White;
-                    using (Brush b = new SolidBrush(Color.FromArgb(128, c)))
-                    {
-                        pe.Graphics.FillRectangle(b, x - 2, y - 2, 4, 4);
-                    }
+                    using Brush b = new SolidBrush(Color.FromArgb(128, c));
+                    pe.Graphics.FillRectangle(b, x - 2, y - 2, 4, 4);
                 }
             }
 
@@ -190,7 +188,7 @@ namespace WDBXEditor.Common
             x = slBitmap.Width / 2 + saturation * (slBitmap.Width - 1) / 255;
             y = slBitmap.Width / 2 + lightness * (slBitmap.Width - 1) / 255;
             c = ToGray(HslToRgb(new HslColor(hue, saturation, lightness))) > 128 ? Color.Black : Color.White;
-            using (Pen p = new Pen(c))
+            using (Pen p = new(c))
             {
                 pe.Graphics.DrawEllipse(p, x - 3, y - 3, 6, 6);
             }
@@ -210,7 +208,7 @@ namespace WDBXEditor.Common
                 else
                 {
                     int halfWheelWidth = wheelBitmap.Width / 2;
-                    Point center = new Point(halfWheelWidth, halfWheelWidth);
+                    Point center = new(halfWheelWidth, halfWheelWidth);
                     double dist = GetDistance(new Point(e.X, e.Y), center);
                     if (dist >= halfWheelWidth * 0.78 && dist < halfWheelWidth)
                     {
@@ -244,7 +242,7 @@ namespace WDBXEditor.Common
                 else if (draggingHue)
                 {
                     int halfWheelWidth = wheelBitmap.Width / 2;
-                    Point center = new Point(halfWheelWidth, halfWheelWidth);
+                    Point center = new(halfWheelWidth, halfWheelWidth);
                     double radAngle = Math.Atan2(e.Y - center.Y, e.X - center.X);
                     double factor = 128.0 / Math.PI;   // map -pi...pi to 0...255 => map 0...pi to 0...128
                                                        // Calculation notes see PrepareWheelBitmap()
@@ -258,11 +256,10 @@ namespace WDBXEditor.Common
 
         private void PrepareWheelBitmap()
         {
-            if (wheelBitmap != null)
-                wheelBitmap.Dispose();
+            wheelBitmap?.Dispose();
 
             int width = Math.Min(ClientSize.Width, ClientSize.Height);
-            Point center = new Point(width / 2, width / 2);
+            Point center = new(width / 2, width / 2);
             if (width < 10)
             {
                 wheelBitmap = null;
@@ -284,9 +281,7 @@ namespace WDBXEditor.Common
             double maxDist = width / 2 - 1;
             double factor = 128.0 / Math.PI;   // map -pi...pi to 0...255 => map 0...pi to 0...128
 
-            BitmapData bmData;
-            byte[] bytes;
-            BitmapReadBytes(wheelBitmap, out bytes, out bmData);
+            BitmapReadBytes(wheelBitmap, out byte[] bytes, out BitmapData bmData);
             for (int y = 0; y < width; y++)
             {
                 for (int x = 0; x < width; x++)
@@ -327,8 +322,7 @@ namespace WDBXEditor.Common
 
         private void PrepareSLBitmap()
         {
-            if (slBitmap != null)
-                slBitmap.Dispose();
+            slBitmap?.Dispose();
 
             int width = Math.Min(ClientSize.Width, ClientSize.Height) / 2;
             if (width < 10)
@@ -340,9 +334,7 @@ namespace WDBXEditor.Common
             // Prepare Bitmap
             slBitmap = new Bitmap(width, width);
 
-            BitmapData bmData;
-            byte[] bytes;
-            BitmapReadBytes(slBitmap, out bytes, out bmData);
+            BitmapReadBytes(slBitmap, out byte[] bytes, out BitmapData bmData);
             for (int y = 0; y < width; y++)
             {
                 for (int x = 0; x < width; x++)
@@ -354,7 +346,7 @@ namespace WDBXEditor.Common
             BitmapWriteBytes(slBitmap, bytes, bmData);
         }
 
-        private void BitmapReadBytes(Bitmap bmp, out byte[] bytes, out BitmapData bmData)
+        private static void BitmapReadBytes(Bitmap bmp, out byte[] bytes, out BitmapData bmData)
         {
             bmData = bmp.LockBits(
                 new Rectangle(0, 0, bmp.Width, bmp.Height),
@@ -365,7 +357,7 @@ namespace WDBXEditor.Common
             Marshal.Copy(bmData.Scan0, bytes, 0, bytes.Length);
         }
 
-        private void BitmapSetPixel(byte[] bytes, BitmapData bmData, int x, int y, Color c)
+        private static void BitmapSetPixel(byte[] bytes, BitmapData bmData, int x, int y, Color c)
         {
             int i = y * bmData.Stride + x * 4;
             bytes[i] = c.B;
@@ -374,13 +366,13 @@ namespace WDBXEditor.Common
             bytes[i + 3] = c.A;
         }
 
-        private void BitmapWriteBytes(Bitmap bmp, byte[] bytes, BitmapData bmData)
+        private static void BitmapWriteBytes(Bitmap bmp, byte[] bytes, BitmapData bmData)
         {
             Marshal.Copy(bytes, 0, bmData.Scan0, bytes.Length);
             bmp.UnlockBits(bmData);
         }
 
-        private double GetDistance(Point a, Point b)
+        private static double GetDistance(Point a, Point b)
         {
             return Math.Sqrt((a.X - b.X) * (a.X - b.X) + (a.Y - b.Y) * (a.Y - b.Y));
         }
@@ -394,7 +386,7 @@ namespace WDBXEditor.Common
         /// <returns></returns>
         private static int Mod(int dividend, int divisor)
         {
-            if (divisor <= 0) throw new ArgumentOutOfRangeException("divisor", "The divisor cannot be zero or negative.");
+            if (divisor <= 0) throw new ArgumentOutOfRangeException(nameof(divisor), "The divisor cannot be zero or negative.");
             int i = dividend % divisor;
             if (i < 0) i += divisor;
             return i;
@@ -410,12 +402,12 @@ namespace WDBXEditor.Common
             SLChanged?.Invoke(this, EventArgs.Empty);
         }
 
-        private byte ToGray(Color c)
+        private static byte ToGray(Color c)
         {
             return (byte)(c.R * 0.3 + c.G * 0.59 + c.B * 0.11);
         }
 
-        private Color HslToRgb(HslColor hsl)
+        private static Color HslToRgb(HslColor hsl)
         {
             double h = (double)hsl.H / 256;
             double s = (double)hsl.S / 255;
@@ -426,7 +418,7 @@ namespace WDBXEditor.Common
             else
                 q = l + s - l * s;
             double p = 2 * l - q;
-            double[] t = new double[] { h + 1.0 / 3, h, h - 1.0 / 3 };
+            double[] t = [h + 1.0 / 3, h, h - 1.0 / 3];
             byte[] rgb = new byte[3];
             for (int i = 0; i < 3; i++)
             {
@@ -444,31 +436,31 @@ namespace WDBXEditor.Common
             return Color.FromArgb(rgb[0], rgb[1], rgb[2]);
         }
 
-        private HslColor RgbToHsl(Color colour)
+        private static HslColor RgbToHsl(Color colour)
         {
             var r = colour.R / 255f;
             var g = colour.G / 255f;
             var b = colour.B / 255f;
             var min = Math.Min(r, Math.Min(g, b));
             var max = Math.Max(r, Math.Max(g, b));
-
-            var h = 0.0f;
-            var s = 0.0f;
             var l = (max + min) / 2;
 
-            if(max == min)
+
+            float h;
+            float s;
+            if (max == min)
                 h = s = 0;
             else
             {
                 var d = max - min;
                 s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
 
-                if(max == r)
+                if (max == r)
                     h = (g - b) / d + (g < b ? 6 : 0);
-                else if(max == g)
+                else if (max == g)
                     h = (b - r) / d + 2;
                 else
-                    h = (r - g) / d + 4; 
+                    h = (r - g) / d + 4;
 
                 h /= 6;
             }
@@ -477,19 +469,12 @@ namespace WDBXEditor.Common
         }
     }
 
-    public struct HslColor
+    public struct HslColor(byte h, byte s, byte l)
     {
-        private byte h, s, l;
+        private byte h = h, s = s, l = l;
 
-        public byte H { get { return h; } set { h = value; } }
-        public byte S { get { return s; } set { s = value; } }
-        public byte L { get { return l; } set { l = value; } }
-
-        public HslColor(byte h, byte s, byte l)
-        {
-            this.h = h;
-            this.s = s;
-            this.l = l;
-        }
+        public byte H { readonly get { return h; } set { h = value; } }
+        public byte S { readonly get { return s; } set { s = value; } }
+        public byte L { readonly get { return l; } set { l = value; } }
     }
 }

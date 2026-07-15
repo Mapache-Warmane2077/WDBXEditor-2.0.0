@@ -18,7 +18,7 @@ namespace WDBXEditor
             InitializeComponent();
         }
 
-        private void btnBrowse_Click(object sender, EventArgs e)
+        private void BtnBrowse_Click(object sender, EventArgs e)
         {
             if (openFileDialog.ShowDialog() == DialogResult.OK)
             {
@@ -29,7 +29,7 @@ namespace WDBXEditor
             }
         }
 
-        private void btnLoad_Click(object sender, EventArgs e)
+        private void BtnLoad_Click(object sender, EventArgs e)
         {
             ((Main)this.Owner).ProgressBarHandle(true, "Importing CSV...");
             this.Enabled = false;
@@ -64,19 +64,19 @@ namespace WDBXEditor
 
         }
 
-        private void btnClose_Click(object sender, EventArgs e)
+        private void BtnClose_Click(object sender, EventArgs e)
         {
             this.DialogResult = DialogResult.Cancel;
             this.Close();
         }
 
-        private void chkFixIds_CheckedChanged(object sender, EventArgs e)
+        private void ChkFixIds_CheckedChanged(object sender, EventArgs e)
         {
             if (rdoFixIds.Checked)
                 rdoNewest.Checked = false;
         }
 
-        private void chkNewest_CheckedChanged(object sender, EventArgs e)
+        private void ChkNewest_CheckedChanged(object sender, EventArgs e)
         {
             if (rdoNewest.Checked)
                 rdoFixIds.Checked = false;

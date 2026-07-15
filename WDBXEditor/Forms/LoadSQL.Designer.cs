@@ -137,7 +137,7 @@
             this.ddlDatabases.Name = "ddlDatabases";
             this.ddlDatabases.Size = new System.Drawing.Size(202, 21);
             this.ddlDatabases.TabIndex = 6;
-            this.ddlDatabases.SelectedIndexChanged += new System.EventHandler(this.ddlDatabases_SelectedIndexChanged);
+            this.ddlDatabases.SelectedIndexChanged += new System.EventHandler(this.DdlDatabases_SelectedIndexChanged);
             // 
             // btnRefresh
             // 
@@ -147,7 +147,7 @@
             this.btnRefresh.TabIndex = 5;
             this.btnRefresh.Text = "Connect";
             this.btnRefresh.UseVisualStyleBackColor = true;
-            this.btnRefresh.Click += new System.EventHandler(this.btnRefresh_Click);
+            this.btnRefresh.Click += new System.EventHandler(this.BtnRefresh_Click);
             // 
             // panel1
             // 
@@ -183,7 +183,7 @@
             this.ddlTable.Name = "ddlTable";
             this.ddlTable.Size = new System.Drawing.Size(203, 21);
             this.ddlTable.TabIndex = 7;
-            this.ddlTable.SelectedIndexChanged += new System.EventHandler(this.ddlTable_SelectedIndexChanged);
+            this.ddlTable.SelectedIndexChanged += new System.EventHandler(this.DdlTable_SelectedIndexChanged);
             // 
             // label9
             // 
@@ -266,7 +266,7 @@
             this.btnLoad.TabIndex = 11;
             this.btnLoad.Text = "Load";
             this.btnLoad.UseVisualStyleBackColor = true;
-            this.btnLoad.Click += new System.EventHandler(this.btnLoad_Click);
+            this.btnLoad.Click += new System.EventHandler(this.BtnLoad_Click);
             // 
             // btnClose
             // 
@@ -276,7 +276,7 @@
             this.btnClose.TabIndex = 12;
             this.btnClose.Text = "Close";
             this.btnClose.UseVisualStyleBackColor = true;
-            this.btnClose.Click += new System.EventHandler(this.btnClose_Click);
+            this.btnClose.Click += new System.EventHandler(this.BtnClose_Click);
             // 
             // LoadSQL
             // 

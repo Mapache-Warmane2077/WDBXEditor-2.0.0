@@ -12,7 +12,8 @@ namespace WDBXEditor.ConsoleHandler
     {
         public static bool ConsoleMode { get; set; } = false;
 
-        public static Dictionary<string, HandleCommand> CommandHandlers = new Dictionary<string, HandleCommand>();
+        // CA2211: Convertido a propiedad agregando { get; set; }
+        public static Dictionary<string, HandleCommand> CommandHandlers { get; set; } = [];
         public delegate void HandleCommand(string[] args);
 
         public static void ConsoleMain(string[] args)
@@ -20,7 +21,7 @@ namespace WDBXEditor.ConsoleHandler
             Database.LoadDefinitions().Wait();
 
             if (CommandHandlers.ContainsKey(args[0].ToLower()))
-                InvokeHandler(args[0], args.Skip(1).ToArray());
+                InvokeHandler(args[0], [.. args.Skip(1)]);
         }
 
         public static bool InvokeHandler(string command, params string[] args)
@@ -28,9 +29,9 @@ namespace WDBXEditor.ConsoleHandler
             try
             {
                 command = command.ToLower();
-                if (CommandHandlers.ContainsKey(command))
+                if (CommandHandlers.TryGetValue(command, out HandleCommand value))
                 {
-                    CommandHandlers[command].Invoke(args);
+                    value.Invoke(args);
                     return true;
                 }
                 else
@@ -60,7 +61,7 @@ namespace WDBXEditor.ConsoleHandler
         /// <returns></returns>
         public static Dictionary<string, string> ParseCommand(string[] args)
         {
-            Dictionary<string, string> keyvalues = new Dictionary<string, string>();
+            Dictionary<string, string> keyvalues = [];
             for (int i = 0; i < args.Length; i++)
             {
                 if (i == args.Length - 1)
@@ -68,8 +69,10 @@ namespace WDBXEditor.ConsoleHandler
 
                 string key = args[i].ToLower();
                 string value = args[++i];
-                if (value[0] == '"' && value[value.Length - 1] == '"')
-                    value = value.Substring(1, value.Length - 2);
+
+                // IDE0056: value.Length - 1 simplificado al operador ^1
+                if (value[0] == '"' && value[^1] == '"')
+                    value = value[1..^1];
 
                 keyvalues.Add(key, value);
             }

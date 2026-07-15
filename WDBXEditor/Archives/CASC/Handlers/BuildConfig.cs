@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using WDBXEditor.Archives.Misc;
+using WDBXEditor.Archives.CASC.Misc;
 
-namespace WDBXEditor.Archives.FileSystem.Structures
+namespace WDBXEditor.Archives.CASC.Handlers
 {
     public class BuildConfig
     {
@@ -11,33 +11,30 @@ namespace WDBXEditor.Archives.FileSystem.Structures
         {
             get
             {
-                string[] entry;
 
-                if (entries.TryGetValue(name, out entry))
+                if (entries.TryGetValue(name, out string[] entry))
                     return entry;
 
                 return null;
             }
         }
 
-        Dictionary<string, string[]> entries = new Dictionary<string, string[]>();
+        readonly Dictionary<string, string[]> entries = [];
 
         public BuildConfig(string wowPath, string buildKey)
         {
-            using (var sr = new StreamReader($"{wowPath}/Data/config/{buildKey.GetHexAt(0)}/{buildKey.GetHexAt(2)}/{buildKey}"))
+            using var sr = new StreamReader($"{wowPath}/Data/config/{buildKey.GetHexAt(0)}/{buildKey.GetHexAt(2)}/{buildKey}");
+            while (!sr.EndOfStream)
             {
-                while (!sr.EndOfStream)
-                {
-                    var data = sr.ReadLine().Split(new[] { '=' }, StringSplitOptions.RemoveEmptyEntries);
+                var data = sr.ReadLine().Split(['='], StringSplitOptions.RemoveEmptyEntries);
 
-                    if (data.Length < 2)
-                        continue;
+                if (data.Length < 2)
+                    continue;
 
-                    var key = data[0].Trim();
-                    var value = data[1].Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+                var key = data[0].Trim();
+                var value = data[1].Split([' '], StringSplitOptions.RemoveEmptyEntries);
 
-                    entries.Add(key, value);
-                }
+                entries.Add(key, value);
             }
         }
     }

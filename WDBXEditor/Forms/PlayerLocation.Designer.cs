@@ -94,7 +94,7 @@
             this.cbProcessSelector.Name = "cbProcessSelector";
             this.cbProcessSelector.Size = new System.Drawing.Size(126, 21);
             this.cbProcessSelector.TabIndex = 1;
-            this.cbProcessSelector.SelectedIndexChanged += new System.EventHandler(this.cbProcessSelector_SelectedIndexChanged);
+            this.cbProcessSelector.SelectedIndexChanged += new System.EventHandler(this.CbProcessSelector_SelectedIndexChanged);
             // 
             // panel1
             // 
@@ -121,7 +121,7 @@
             this.btnRefresh.TabIndex = 8;
             this.toolTip1.SetToolTip(this.btnRefresh, "Reload processes");
             this.btnRefresh.UseVisualStyleBackColor = true;
-            this.btnRefresh.Click += new System.EventHandler(this.btnRefresh_Click);
+            this.btnRefresh.Click += new System.EventHandler(this.BtnRefresh_Click);
             // 
             // grpLoc
             // 
@@ -152,7 +152,7 @@
             this.chkAuto.Text = "Auto Update";
             this.toolTip1.SetToolTip(this.chkAuto, "Poll player location");
             this.chkAuto.UseVisualStyleBackColor = true;
-            this.chkAuto.CheckedChanged += new System.EventHandler(this.chkAuto_CheckedChanged);
+            this.chkAuto.CheckedChanged += new System.EventHandler(this.ChkAuto_CheckedChanged);
             // 
             // btnGetPos
             // 
@@ -162,7 +162,7 @@
             this.btnGetPos.TabIndex = 28;
             this.btnGetPos.Text = "Get Location";
             this.btnGetPos.UseVisualStyleBackColor = true;
-            this.btnGetPos.Click += new System.EventHandler(this.btnGetPos_Click);
+            this.btnGetPos.Click += new System.EventHandler(this.BtnGetPos_Click);
             // 
             // txtCurYPos
             // 
@@ -268,7 +268,7 @@
             this.btnDelete.TabIndex = 27;
             this.btnDelete.Text = "Delete";
             this.btnDelete.UseVisualStyleBackColor = true;
-            this.btnDelete.Click += new System.EventHandler(this.btnDelete_Click);
+            this.btnDelete.Click += new System.EventHandler(this.BtnDelete_Click);
             // 
             // btnSave
             // 
@@ -278,7 +278,7 @@
             this.btnSave.TabIndex = 26;
             this.btnSave.Text = "Save";
             this.btnSave.UseVisualStyleBackColor = true;
-            this.btnSave.Click += new System.EventHandler(this.btnSave_Click);
+            this.btnSave.Click += new System.EventHandler(this.BtnSave_Click);
             // 
             // txtPosX
             // 
@@ -434,7 +434,7 @@
             this.btnUntarget.TabIndex = 5;
             this.toolTip1.SetToolTip(this.btnUntarget, "Detach from process");
             this.btnUntarget.UseVisualStyleBackColor = true;
-            this.btnUntarget.Click += new System.EventHandler(this.btnUntarget_Click);
+            this.btnUntarget.Click += new System.EventHandler(this.BtnUntarget_Click);
             // 
             // btnTarget
             // 
@@ -446,7 +446,7 @@
             this.btnTarget.TabIndex = 4;
             this.toolTip1.SetToolTip(this.btnTarget, "Attach to process");
             this.btnTarget.UseVisualStyleBackColor = true;
-            this.btnTarget.Click += new System.EventHandler(this.btnTarget_Click);
+            this.btnTarget.Click += new System.EventHandler(this.BtnTarget_Click);
             // 
             // label2
             // 
@@ -465,12 +465,12 @@
             this.cbBuildSelector.Name = "cbBuildSelector";
             this.cbBuildSelector.Size = new System.Drawing.Size(124, 21);
             this.cbBuildSelector.TabIndex = 2;
-            this.cbBuildSelector.SelectedIndexChanged += new System.EventHandler(this.cbBuildSelector_SelectedIndexChanged);
+            this.cbBuildSelector.SelectedIndexChanged += new System.EventHandler(this.CbBuildSelector_SelectedIndexChanged);
             // 
             // tmrLoop
             // 
             this.tmrLoop.Interval = 1000;
-            this.tmrLoop.Tick += new System.EventHandler(this.tmrLoop_Tick);
+            this.tmrLoop.Tick += new System.EventHandler(this.TmrLoop_Tick);
             // 
             // lblErr
             // 

@@ -4,21 +4,24 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
 
+#pragma warning disable SYSLIB1054 // Desactiva la sugerencia moderna porque StormLib usa tipos nativos complejos no soportados por LibraryImport.
+
 namespace WDBXEditor.Archives.MPQ.Native
 {
-    internal static class NativeMethods
+    internal static class NativeMethods // Volvemos a quitar el 'partial'
     {
         private const string STORMLIB = "stormlib.dll";
 
         #region Functions for manipulation with StormLib global flags
-        [DllImport(STORMLIB, CallingConvention = CallingConvention.Winapi, ExactSpelling = true, PreserveSig = true, SetLastError = true, ThrowOnUnmappableChar = false)]
+        [DllImport(STORMLIB, CallingConvention = CallingConvention.Winapi, ExactSpelling = true, PreserveSig = true, SetLastError = true, ThrowOnUnmappableChar = false, BestFitMapping = false)]
         public static extern uint SFileGetLocale();
-        [DllImport(STORMLIB, CallingConvention = CallingConvention.Winapi, ExactSpelling = true, PreserveSig = true, SetLastError = true, ThrowOnUnmappableChar = false)]
+
+        [DllImport(STORMLIB, CallingConvention = CallingConvention.Winapi, ExactSpelling = true, PreserveSig = true, SetLastError = true, ThrowOnUnmappableChar = false, BestFitMapping = false)]
         public static extern uint SFileSetLocale(uint lcNewLocale);
         #endregion
 
-        #region Functions for archive manipulation
-        [DllImport(STORMLIB, CallingConvention = CallingConvention.Winapi, ExactSpelling = true, PreserveSig = true, SetLastError = true, ThrowOnUnmappableChar = false)]
+        #region Functions for archive manipulation        
+        [DllImport(STORMLIB, CallingConvention = CallingConvention.Winapi, ExactSpelling = true, PreserveSig = true, SetLastError = true, ThrowOnUnmappableChar = false, BestFitMapping = false)]
         public static extern bool SFileOpenArchive(
             [MarshalAs(UnmanagedType.LPTStr)] string szMpqName,
             uint dwPriority,
@@ -26,7 +29,7 @@ namespace WDBXEditor.Archives.MPQ.Native
             out MpqArchiveSafeHandle phMpq
             );
 
-        [DllImport(STORMLIB, CallingConvention = CallingConvention.Winapi, ExactSpelling = true, PreserveSig = true, SetLastError = true, ThrowOnUnmappableChar = false)]
+        [DllImport(STORMLIB, CallingConvention = CallingConvention.Winapi, ExactSpelling = true, PreserveSig = true, SetLastError = true, ThrowOnUnmappableChar = false, BestFitMapping = false)]
         public static extern bool SFileCreateArchive(
             [MarshalAs(UnmanagedType.LPTStr)] string szMpqName,
             uint dwCreateFlags,
@@ -34,32 +37,32 @@ namespace WDBXEditor.Archives.MPQ.Native
             out MpqArchiveSafeHandle phMpq
             );
 
-        [DllImport(STORMLIB, CallingConvention = CallingConvention.Winapi, ExactSpelling = true, PreserveSig = true, SetLastError = true, ThrowOnUnmappableChar = false)]
+        [DllImport(STORMLIB, CallingConvention = CallingConvention.Winapi, ExactSpelling = true, PreserveSig = true, SetLastError = true, ThrowOnUnmappableChar = false, BestFitMapping = false)]
         public static extern bool SFileCreateArchive2(
             [MarshalAs(UnmanagedType.LPTStr)] string szMpqName,
             ref SFILE_CREATE_MPQ pCreateInfo,
             out MpqArchiveSafeHandle phMpq
             );
 
-        [DllImport(STORMLIB, CallingConvention = CallingConvention.Winapi, ExactSpelling = true, PreserveSig = true, SetLastError = true, ThrowOnUnmappableChar = false)]
+        [DllImport(STORMLIB, CallingConvention = CallingConvention.Winapi, ExactSpelling = true, PreserveSig = true, SetLastError = true, ThrowOnUnmappableChar = false, BestFitMapping = false)]
         public static extern bool SFileSetDownloadCallback(
             MpqArchiveSafeHandle hMpq,
             [MarshalAs(UnmanagedType.FunctionPtr)] SFILE_DOWNLOAD_CALLBACK pfnCallback,
             IntPtr pvUserData
             );
 
-        [DllImport(STORMLIB, CallingConvention = CallingConvention.Winapi, ExactSpelling = true, PreserveSig = true, SetLastError = true, ThrowOnUnmappableChar = false)]
+        [DllImport(STORMLIB, CallingConvention = CallingConvention.Winapi, ExactSpelling = true, PreserveSig = true, SetLastError = true, ThrowOnUnmappableChar = false, BestFitMapping = false)]
         public static extern bool SFileFlushArchive(MpqArchiveSafeHandle hMpq);
 
-        [DllImport(STORMLIB, CallingConvention = CallingConvention.Winapi, ExactSpelling = true, PreserveSig = true, SetLastError = true, ThrowOnUnmappableChar = false)]
+        [DllImport(STORMLIB, CallingConvention = CallingConvention.Winapi, ExactSpelling = true, PreserveSig = true, SetLastError = true, ThrowOnUnmappableChar = false, BestFitMapping = false)]
         public static extern bool SFileCloseArchive(IntPtr hMpq);
 
-        [DllImport(STORMLIB, CallingConvention = CallingConvention.Winapi, ExactSpelling = true, PreserveSig = true, SetLastError = true, ThrowOnUnmappableChar = false)]
+        [DllImport(STORMLIB, CallingConvention = CallingConvention.Winapi, ExactSpelling = true, PreserveSig = true, SetLastError = true, ThrowOnUnmappableChar = false, BestFitMapping = false)]
         public static extern bool SFileCloseArchive(MpqArchiveSafeHandle hMpq);
         #endregion
 
         #region Adds another listfile into MPQ.
-        [DllImport(STORMLIB, CallingConvention = CallingConvention.Winapi, ExactSpelling = true, PreserveSig = true, SetLastError = true, ThrowOnUnmappableChar = false)]
+        [DllImport(STORMLIB, CallingConvention = CallingConvention.Winapi, ExactSpelling = true, PreserveSig = true, SetLastError = true, ThrowOnUnmappableChar = false, BestFitMapping = false)]
         public static extern int SFileAddListFile(
             MpqArchiveSafeHandle hMpq,
             [MarshalAs(UnmanagedType.LPStr)] string szListFile
@@ -67,14 +70,14 @@ namespace WDBXEditor.Archives.MPQ.Native
         #endregion
 
         #region Archive compacting
-        [DllImport(STORMLIB, CallingConvention = CallingConvention.Winapi, ExactSpelling = true, PreserveSig = true, SetLastError = true, ThrowOnUnmappableChar = false)]
+        [DllImport(STORMLIB, CallingConvention = CallingConvention.Winapi, ExactSpelling = true, PreserveSig = true, SetLastError = true, ThrowOnUnmappableChar = false, BestFitMapping = false)]
         public static extern bool SFileSetCompactCallback(
             MpqArchiveSafeHandle hMpq,
             SFILE_COMPACT_CALLBACK compactCB,
             IntPtr pvUserData
             );
 
-        [DllImport(STORMLIB, CallingConvention = CallingConvention.Winapi, ExactSpelling = true, PreserveSig = true, SetLastError = true, ThrowOnUnmappableChar = false)]
+        [DllImport(STORMLIB, CallingConvention = CallingConvention.Winapi, ExactSpelling = true, PreserveSig = true, SetLastError = true, ThrowOnUnmappableChar = false, BestFitMapping = false)]
         public static extern bool SFileCompactArchive(
             MpqArchiveSafeHandle hMpq,
             [MarshalAs(UnmanagedType.LPStr)] string szListFile,
@@ -83,21 +86,21 @@ namespace WDBXEditor.Archives.MPQ.Native
         #endregion
 
         #region Maximum file count
-        [DllImport(STORMLIB, CallingConvention = CallingConvention.Winapi, ExactSpelling = true, PreserveSig = true, SetLastError = true, ThrowOnUnmappableChar = false)]
+        [DllImport(STORMLIB, CallingConvention = CallingConvention.Winapi, ExactSpelling = true, PreserveSig = true, SetLastError = true, ThrowOnUnmappableChar = false, BestFitMapping = false)]
         public static extern uint SFileGetMaxFileCount(MpqArchiveSafeHandle hMpq);
 
-        [DllImport(STORMLIB, CallingConvention = CallingConvention.Winapi, ExactSpelling = true, PreserveSig = true, SetLastError = true, ThrowOnUnmappableChar = false)]
+        [DllImport(STORMLIB, CallingConvention = CallingConvention.Winapi, ExactSpelling = true, PreserveSig = true, SetLastError = true, ThrowOnUnmappableChar = false, BestFitMapping = false)]
         public static extern bool SFileSetMaxFileCount(MpqArchiveSafeHandle hMpq, uint dwMaxFileCount);
         #endregion
 
         #region Changing (attributes) file
-        [DllImport(STORMLIB, CallingConvention = CallingConvention.Winapi, ExactSpelling = true, PreserveSig = true, SetLastError = true, ThrowOnUnmappableChar = false)]
+        [DllImport(STORMLIB, CallingConvention = CallingConvention.Winapi, ExactSpelling = true, PreserveSig = true, SetLastError = true, ThrowOnUnmappableChar = false, BestFitMapping = false)]
         public static extern uint SFileGetAttributes(MpqArchiveSafeHandle hMpq);
 
-        [DllImport(STORMLIB, CallingConvention = CallingConvention.Winapi, ExactSpelling = true, PreserveSig = true, SetLastError = true, ThrowOnUnmappableChar = false)]
+        [DllImport(STORMLIB, CallingConvention = CallingConvention.Winapi, ExactSpelling = true, PreserveSig = true, SetLastError = true, ThrowOnUnmappableChar = false, BestFitMapping = false)]
         public static extern bool SFileSetAttributes(MpqArchiveSafeHandle hMpq, uint dwFlags);
 
-        [DllImport(STORMLIB, CallingConvention = CallingConvention.Winapi, ExactSpelling = true, PreserveSig = true, SetLastError = true, ThrowOnUnmappableChar = false)]
+        [DllImport(STORMLIB, CallingConvention = CallingConvention.Winapi, ExactSpelling = true, PreserveSig = true, SetLastError = true, ThrowOnUnmappableChar = false, BestFitMapping = false)]
         public static extern bool SFileUpdateFileAttributes(
             MpqArchiveSafeHandle hMpq,
             [MarshalAs(UnmanagedType.LPStr)] string szFileName
@@ -105,7 +108,7 @@ namespace WDBXEditor.Archives.MPQ.Native
         #endregion
 
         #region Functions for manipulation with patch archives
-        [DllImport(STORMLIB, CallingConvention = CallingConvention.Winapi, ExactSpelling = true, PreserveSig = true, SetLastError = true, ThrowOnUnmappableChar = false)]
+        [DllImport(STORMLIB, CallingConvention = CallingConvention.Winapi, ExactSpelling = true, PreserveSig = true, SetLastError = true, ThrowOnUnmappableChar = false, BestFitMapping = false)]
         public static extern bool SFileOpenPatchArchive(
             MpqArchiveSafeHandle hMpq,
             [MarshalAs(UnmanagedType.LPTStr)] string szPatchMpqName,
@@ -113,18 +116,18 @@ namespace WDBXEditor.Archives.MPQ.Native
             uint dwFlags
             );
 
-        [DllImport(STORMLIB, CallingConvention = CallingConvention.Winapi, ExactSpelling = true, PreserveSig = true, SetLastError = true, ThrowOnUnmappableChar = false)]
+        [DllImport(STORMLIB, CallingConvention = CallingConvention.Winapi, ExactSpelling = true, PreserveSig = true, SetLastError = true, ThrowOnUnmappableChar = false, BestFitMapping = false)]
         public static extern bool SFileIsPatchedArchive(MpqArchiveSafeHandle hMpq);
         #endregion
 
         #region Functions for file manipulation
-        [DllImport(STORMLIB, CallingConvention = CallingConvention.Winapi, ExactSpelling = true, PreserveSig = true, SetLastError = true, ThrowOnUnmappableChar = false)]
+        [DllImport(STORMLIB, CallingConvention = CallingConvention.Winapi, ExactSpelling = true, PreserveSig = true, SetLastError = true, ThrowOnUnmappableChar = false, BestFitMapping = false)]
         public static extern bool SFileHasFile(
             MpqArchiveSafeHandle hMpq,
             [MarshalAs(UnmanagedType.LPStr)] string szFileName
             );
 
-        [DllImport(STORMLIB, CallingConvention = CallingConvention.Winapi, ExactSpelling = true, PreserveSig = true, SetLastError = true, ThrowOnUnmappableChar = false)]
+        [DllImport(STORMLIB, CallingConvention = CallingConvention.Winapi, ExactSpelling = true, PreserveSig = true, SetLastError = true, ThrowOnUnmappableChar = false, BestFitMapping = false)]
         public static extern bool SFileOpenFileEx(
             MpqArchiveSafeHandle hMpq,
             [MarshalAs(UnmanagedType.LPStr)] string szFileName,
@@ -132,7 +135,7 @@ namespace WDBXEditor.Archives.MPQ.Native
             out MpqFileSafeHandle phFile
             );
 
-        [DllImport(STORMLIB, CallingConvention = CallingConvention.Winapi, ExactSpelling = true, PreserveSig = true, SetLastError = true, ThrowOnUnmappableChar = false)]
+        [DllImport(STORMLIB, CallingConvention = CallingConvention.Winapi, ExactSpelling = true, PreserveSig = true, SetLastError = true, ThrowOnUnmappableChar = false, BestFitMapping = false)]
         public static extern uint SFileGetFileSize(MpqFileSafeHandle hFile, ref uint pdwFileSizeHigh);
 
         public static unsafe uint SFileGetFilePointer(
@@ -143,7 +146,7 @@ namespace WDBXEditor.Archives.MPQ.Native
                 throw new InvalidOperationException();
 
             IntPtr handle = hFile.DangerousGetHandle();
-            _TMPQFileHeader* header = (_TMPQFileHeader*)handle.ToPointer();
+            TMPQFileHeader* header = (TMPQFileHeader*)handle.ToPointer();
             return header->dwFilePos;
         }
 
@@ -159,7 +162,7 @@ namespace WDBXEditor.Archives.MPQ.Native
         //    return header->pFileEntry->dwFileSize;
         //}
 
-        [DllImport(STORMLIB, CallingConvention = CallingConvention.Winapi, ExactSpelling = true, PreserveSig = true, SetLastError = true, ThrowOnUnmappableChar = false)]
+        [DllImport(STORMLIB, CallingConvention = CallingConvention.Winapi, ExactSpelling = true, PreserveSig = true, SetLastError = true, ThrowOnUnmappableChar = false, BestFitMapping = false)]
         public static extern uint SFileSetFilePointer(
             MpqFileSafeHandle hFile,
             uint lFilePos,
@@ -167,7 +170,7 @@ namespace WDBXEditor.Archives.MPQ.Native
             uint dwMoveMethod
             );
 
-        [DllImport(STORMLIB, CallingConvention = CallingConvention.Winapi, ExactSpelling = true, PreserveSig = true, SetLastError = true, ThrowOnUnmappableChar = false)]
+        [DllImport(STORMLIB, CallingConvention = CallingConvention.Winapi, ExactSpelling = true, PreserveSig = true, SetLastError = true, ThrowOnUnmappableChar = false, BestFitMapping = false)]
         public static extern bool SFileReadFile(
             MpqFileSafeHandle hFile,
             IntPtr lpBuffer,
@@ -176,14 +179,14 @@ namespace WDBXEditor.Archives.MPQ.Native
             ref System.Threading.NativeOverlapped lpOverlapped
             );
 
-        [DllImport(STORMLIB, CallingConvention = CallingConvention.Winapi, ExactSpelling = true, PreserveSig = true, SetLastError = true, ThrowOnUnmappableChar = false)]
+        [DllImport(STORMLIB, CallingConvention = CallingConvention.Winapi, ExactSpelling = true, PreserveSig = true, SetLastError = true, ThrowOnUnmappableChar = false, BestFitMapping = false)]
         public static extern bool SFileCloseFile(IntPtr hFile);
 
-        [DllImport(STORMLIB, CallingConvention = CallingConvention.Winapi, ExactSpelling = true, PreserveSig = true, SetLastError = true, ThrowOnUnmappableChar = false)]
+        [DllImport(STORMLIB, CallingConvention = CallingConvention.Winapi, ExactSpelling = true, PreserveSig = true, SetLastError = true, ThrowOnUnmappableChar = false, BestFitMapping = false)]
         public static extern bool SFileCloseFile(MpqFileSafeHandle hFile);
 
         #region Retrieving info about a file in the archive
-        [DllImport(STORMLIB, CallingConvention = CallingConvention.Winapi, ExactSpelling = true, PreserveSig = true, SetLastError = true, ThrowOnUnmappableChar = false)]
+        [DllImport(STORMLIB, CallingConvention = CallingConvention.Winapi, ExactSpelling = true, PreserveSig = true, SetLastError = true, ThrowOnUnmappableChar = false, BestFitMapping = false)]
         public static extern bool SFileGetFileInfo(
             IntPtr hMpqOrFile,
             SFileInfoClass InfoClass,
@@ -192,7 +195,7 @@ namespace WDBXEditor.Archives.MPQ.Native
             out uint pcbLengthNeeded
             );
 
-        [DllImport(STORMLIB, CallingConvention = CallingConvention.Winapi, ExactSpelling = true, PreserveSig = true, SetLastError = true, ThrowOnUnmappableChar = false)]
+        [DllImport(STORMLIB, CallingConvention = CallingConvention.Winapi, ExactSpelling = true, PreserveSig = true, SetLastError = true, ThrowOnUnmappableChar = false, BestFitMapping = false)]
         public static extern bool SFileGetFileInfo(
             MpqArchiveSafeHandle hMpqOrFile,
             SFileInfoClass InfoClass,
@@ -201,7 +204,7 @@ namespace WDBXEditor.Archives.MPQ.Native
             out uint pcbLengthNeeded
             );
 
-        [DllImport(STORMLIB, CallingConvention = CallingConvention.Winapi, ExactSpelling = true, PreserveSig = true, SetLastError = true, ThrowOnUnmappableChar = false)]
+        [DllImport(STORMLIB, CallingConvention = CallingConvention.Winapi, ExactSpelling = true, PreserveSig = true, SetLastError = true, ThrowOnUnmappableChar = false, BestFitMapping = false)]
         public static extern bool SFileGetFileInfo(
             MpqFileSafeHandle hMpqOrFile,
             SFileInfoClass InfoClass,
@@ -210,20 +213,20 @@ namespace WDBXEditor.Archives.MPQ.Native
             out uint pcbLengthNeeded
             );
 
-        [DllImport(STORMLIB, CallingConvention = CallingConvention.Winapi, ExactSpelling = true, PreserveSig = true, SetLastError = true, ThrowOnUnmappableChar = false)]
+        [DllImport(STORMLIB, CallingConvention = CallingConvention.Winapi, ExactSpelling = true, PreserveSig = true, SetLastError = true, ThrowOnUnmappableChar = false, BestFitMapping = false)]
         public static extern bool SFileGetFileName(
             MpqFileSafeHandle hFile,
             [MarshalAs(UnmanagedType.LPStr)] out string szFileName
             );
 
-        [DllImport(STORMLIB, CallingConvention = CallingConvention.Winapi, ExactSpelling = true, PreserveSig = true, SetLastError = true, ThrowOnUnmappableChar = false)]
+        [DllImport(STORMLIB, CallingConvention = CallingConvention.Winapi, ExactSpelling = true, PreserveSig = true, SetLastError = true, ThrowOnUnmappableChar = false, BestFitMapping = false)]
         public static extern bool SFileFreeFileInfo(
             IntPtr pvFileInfo,
             SFileInfoClass infoClass
             );
         #endregion
 
-        [DllImport(STORMLIB, CallingConvention = CallingConvention.Winapi, ExactSpelling = true, PreserveSig = true, SetLastError = true, ThrowOnUnmappableChar = false)]
+        [DllImport(STORMLIB, CallingConvention = CallingConvention.Winapi, ExactSpelling = true, PreserveSig = true, SetLastError = true, ThrowOnUnmappableChar = false, BestFitMapping = false)]
         public static extern bool SFileExtractFile(
             MpqArchiveSafeHandle hMpq,
             [MarshalAs(UnmanagedType.LPStr)] string szToExtract,
@@ -234,7 +237,7 @@ namespace WDBXEditor.Archives.MPQ.Native
         #endregion
 
         #region Functions for file and archive verification
-        [DllImport(STORMLIB, CallingConvention = CallingConvention.Winapi, ExactSpelling = true, PreserveSig = true, SetLastError = true, ThrowOnUnmappableChar = false)]
+        [DllImport(STORMLIB, CallingConvention = CallingConvention.Winapi, ExactSpelling = true, PreserveSig = true, SetLastError = true, ThrowOnUnmappableChar = false, BestFitMapping = false)]
         public static extern bool SFileGetFileChecksums(
             MpqArchiveSafeHandle hMpq,
             [MarshalAs(UnmanagedType.LPStr)] string szFileName,
@@ -242,62 +245,62 @@ namespace WDBXEditor.Archives.MPQ.Native
             IntPtr pMD5
             );
 
-        [DllImport(STORMLIB, CallingConvention = CallingConvention.Winapi, ExactSpelling = true, PreserveSig = true, SetLastError = true, ThrowOnUnmappableChar = false)]
+        [DllImport(STORMLIB, CallingConvention = CallingConvention.Winapi, ExactSpelling = true, PreserveSig = true, SetLastError = true, ThrowOnUnmappableChar = false, BestFitMapping = false)]
         public static extern uint SFileVerifyFile(
             MpqArchiveSafeHandle hMpq,
             [MarshalAs(UnmanagedType.LPStr)] string szFileName,
             uint dwFlags
             );
 
-        [DllImport(STORMLIB, CallingConvention = CallingConvention.Winapi, ExactSpelling = true, PreserveSig = true, SetLastError = true, ThrowOnUnmappableChar = false)]
+        [DllImport(STORMLIB, CallingConvention = CallingConvention.Winapi, ExactSpelling = true, PreserveSig = true, SetLastError = true, ThrowOnUnmappableChar = false, BestFitMapping = false)]
         public static extern int SFileVerifyRawData(
             MpqArchiveSafeHandle hMpq,
             uint dwWhatToVerify,
             [MarshalAs(UnmanagedType.LPStr)] string szFileName
             );
 
-        [DllImport(STORMLIB, CallingConvention = CallingConvention.Winapi, ExactSpelling = true, PreserveSig = true, SetLastError = true, ThrowOnUnmappableChar = false)]
+        [DllImport(STORMLIB, CallingConvention = CallingConvention.Winapi, ExactSpelling = true, PreserveSig = true, SetLastError = true, ThrowOnUnmappableChar = false, BestFitMapping = false)]
         public static extern uint SFileVerifyArchive(MpqArchiveSafeHandle hMpq);
         #endregion
 
         #region Functions for file searching
-        [DllImport(STORMLIB, CallingConvention = CallingConvention.Winapi, ExactSpelling = true, PreserveSig = true, SetLastError = true, ThrowOnUnmappableChar = false)]
+        [DllImport(STORMLIB, CallingConvention = CallingConvention.Winapi, ExactSpelling = true, PreserveSig = true, SetLastError = true, ThrowOnUnmappableChar = false, BestFitMapping = false)]
         public static extern IntPtr SFileFindFirstFile(
             MpqArchiveSafeHandle hMpq,
             [MarshalAs(UnmanagedType.LPStr)] string szMask,
-            out _SFILE_FIND_DATA lpFindFileData,
+            out SFILE_FIND_DATA lpFindFileData,
             [MarshalAs(UnmanagedType.LPStr)] string szListFile
             );
 
-        [DllImport(STORMLIB, CallingConvention = CallingConvention.Winapi, ExactSpelling = true, PreserveSig = true, SetLastError = true, ThrowOnUnmappableChar = false)]
+        [DllImport(STORMLIB, CallingConvention = CallingConvention.Winapi, ExactSpelling = true, PreserveSig = true, SetLastError = true, ThrowOnUnmappableChar = false, BestFitMapping = false)]
         public static extern bool SFileFindNextFile(
             IntPtr hFind,
-            [In, Out] ref _SFILE_FIND_DATA lpFindFileData
+            [In, Out] ref SFILE_FIND_DATA lpFindFileData
             );
 
-        [DllImport(STORMLIB, CallingConvention = CallingConvention.Winapi, ExactSpelling = true, PreserveSig = true, SetLastError = true, ThrowOnUnmappableChar = false)]
+        [DllImport(STORMLIB, CallingConvention = CallingConvention.Winapi, ExactSpelling = true, PreserveSig = true, SetLastError = true, ThrowOnUnmappableChar = false, BestFitMapping = false)]
         public static extern bool SFileFindClose(IntPtr hFind);
 
-        [DllImport(STORMLIB, CallingConvention = CallingConvention.Winapi, ExactSpelling = true, PreserveSig = true, SetLastError = true, ThrowOnUnmappableChar = false)]
+        [DllImport(STORMLIB, CallingConvention = CallingConvention.Winapi, ExactSpelling = true, PreserveSig = true, SetLastError = true, ThrowOnUnmappableChar = false, BestFitMapping = false)]
         public static extern IntPtr SListFileFindFirstFile(
             MpqArchiveSafeHandle hMpq,
             [MarshalAs(UnmanagedType.LPStr)] string szListFile,
             [MarshalAs(UnmanagedType.LPStr)] string szMask,
-            [In, Out] ref _SFILE_FIND_DATA lpFindFileData
+            [In, Out] ref SFILE_FIND_DATA lpFindFileData
             );
 
-        [DllImport(STORMLIB, CallingConvention = CallingConvention.Winapi, ExactSpelling = true, PreserveSig = true, SetLastError = true, ThrowOnUnmappableChar = false)]
+        [DllImport(STORMLIB, CallingConvention = CallingConvention.Winapi, ExactSpelling = true, PreserveSig = true, SetLastError = true, ThrowOnUnmappableChar = false, BestFitMapping = false)]
         public static extern bool SListFileFindNextFile(
             IntPtr hFind,
-            [In, Out] ref _SFILE_FIND_DATA lpFindFileData
+            [In, Out] ref SFILE_FIND_DATA lpFindFileData
             );
 
-        [DllImport(STORMLIB, CallingConvention = CallingConvention.Winapi, ExactSpelling = true, PreserveSig = true, SetLastError = true, ThrowOnUnmappableChar = false)]
+        [DllImport(STORMLIB, CallingConvention = CallingConvention.Winapi, ExactSpelling = true, PreserveSig = true, SetLastError = true, ThrowOnUnmappableChar = false, BestFitMapping = false)]
         public static extern bool SListFileFindClose(IntPtr hFind);
         #endregion
 
         #region Locale support
-        [DllImport(STORMLIB, CallingConvention = CallingConvention.Winapi, ExactSpelling = true, PreserveSig = true, SetLastError = true, ThrowOnUnmappableChar = false)]
+        [DllImport(STORMLIB, CallingConvention = CallingConvention.Winapi, ExactSpelling = true, PreserveSig = true, SetLastError = true, ThrowOnUnmappableChar = false, BestFitMapping = false)]
         public static extern int SFileEnumLocales(
             MpqArchiveSafeHandle hMpq,
             [MarshalAs(UnmanagedType.LPStr)] string szFileName,
@@ -308,7 +311,7 @@ namespace WDBXEditor.Archives.MPQ.Native
         #endregion
 
         #region Support for adding files to the MPQ
-        [DllImport(STORMLIB, CallingConvention = CallingConvention.Winapi, ExactSpelling = true, PreserveSig = true, SetLastError = true, ThrowOnUnmappableChar = false)]
+        [DllImport(STORMLIB, CallingConvention = CallingConvention.Winapi, ExactSpelling = true, PreserveSig = true, SetLastError = true, ThrowOnUnmappableChar = false, BestFitMapping = false)]
         public static extern bool SFileCreateFile(
             MpqArchiveSafeHandle hMpq,
             [MarshalAs(UnmanagedType.LPStr)] string szArchiveName,
@@ -319,7 +322,7 @@ namespace WDBXEditor.Archives.MPQ.Native
             out IntPtr phFile
             );
 
-        [DllImport(STORMLIB, CallingConvention = CallingConvention.Winapi, ExactSpelling = true, PreserveSig = true, SetLastError = true, ThrowOnUnmappableChar = false)]
+        [DllImport(STORMLIB, CallingConvention = CallingConvention.Winapi, ExactSpelling = true, PreserveSig = true, SetLastError = true, ThrowOnUnmappableChar = false, BestFitMapping = false)]
         public static extern bool SFileWriteFile(
             MpqFileSafeHandle hFile,
             IntPtr pvData,
@@ -327,10 +330,10 @@ namespace WDBXEditor.Archives.MPQ.Native
             uint dwCompression
             );
 
-        [DllImport(STORMLIB, CallingConvention = CallingConvention.Winapi, ExactSpelling = true, PreserveSig = true, SetLastError = true, ThrowOnUnmappableChar = false)]
+        [DllImport(STORMLIB, CallingConvention = CallingConvention.Winapi, ExactSpelling = true, PreserveSig = true, SetLastError = true, ThrowOnUnmappableChar = false, BestFitMapping = false)]
         public static extern bool SFileFinishFile(MpqFileSafeHandle hFile);
 
-        [DllImport(STORMLIB, CallingConvention = CallingConvention.Winapi, ExactSpelling = true, PreserveSig = true, SetLastError = true, ThrowOnUnmappableChar = false)]
+        [DllImport(STORMLIB, CallingConvention = CallingConvention.Winapi, ExactSpelling = true, PreserveSig = true, SetLastError = true, ThrowOnUnmappableChar = false, BestFitMapping = false)]
         public static extern bool SFileAddFileEx(
             MpqArchiveSafeHandle hMpq,
             [MarshalAs(UnmanagedType.LPTStr)] string szFileName,
@@ -340,7 +343,7 @@ namespace WDBXEditor.Archives.MPQ.Native
             uint dwCompressionNext
             );
 
-        [DllImport(STORMLIB, CallingConvention = CallingConvention.Winapi, ExactSpelling = true, PreserveSig = true, SetLastError = true, ThrowOnUnmappableChar = false)]
+        [DllImport(STORMLIB, CallingConvention = CallingConvention.Winapi, ExactSpelling = true, PreserveSig = true, SetLastError = true, ThrowOnUnmappableChar = false, BestFitMapping = false)]
         public static extern bool SFileAddFile(
             MpqArchiveSafeHandle hMpq,
             [MarshalAs(UnmanagedType.LPTStr)] string szFileName,
@@ -348,7 +351,7 @@ namespace WDBXEditor.Archives.MPQ.Native
             uint dwFlags
             );
 
-        [DllImport(STORMLIB, CallingConvention = CallingConvention.Winapi, ExactSpelling = true, PreserveSig = true, SetLastError = true, ThrowOnUnmappableChar = false)]
+        [DllImport(STORMLIB, CallingConvention = CallingConvention.Winapi, ExactSpelling = true, PreserveSig = true, SetLastError = true, ThrowOnUnmappableChar = false, BestFitMapping = false)]
         public static extern bool SFileAddWave(
             MpqArchiveSafeHandle hMpq,
             [MarshalAs(UnmanagedType.LPTStr)] string szFileName,
@@ -357,30 +360,30 @@ namespace WDBXEditor.Archives.MPQ.Native
             uint dwQuality
             );
 
-        [DllImport(STORMLIB, CallingConvention = CallingConvention.Winapi, ExactSpelling = true, PreserveSig = true, SetLastError = true, ThrowOnUnmappableChar = false)]
+        [DllImport(STORMLIB, CallingConvention = CallingConvention.Winapi, ExactSpelling = true, PreserveSig = true, SetLastError = true, ThrowOnUnmappableChar = false, BestFitMapping = false)]
         public static extern bool SFileRemoveFile(
             MpqArchiveSafeHandle hMpq,
             [MarshalAs(UnmanagedType.LPStr)] string szFileName,
             uint dwSearchScope
             );
 
-        [DllImport(STORMLIB, CallingConvention = CallingConvention.Winapi, ExactSpelling = true, PreserveSig = true, SetLastError = true, ThrowOnUnmappableChar = false)]
+        [DllImport(STORMLIB, CallingConvention = CallingConvention.Winapi, ExactSpelling = true, PreserveSig = true, SetLastError = true, ThrowOnUnmappableChar = false, BestFitMapping = false)]
         public static extern bool SFileRenameFile(
             MpqArchiveSafeHandle hMpq,
             [MarshalAs(UnmanagedType.LPStr)] string szOldFileName,
             [MarshalAs(UnmanagedType.LPStr)] string szNewFileName
             );
 
-        [DllImport(STORMLIB, CallingConvention = CallingConvention.Winapi, ExactSpelling = true, PreserveSig = true, SetLastError = true, ThrowOnUnmappableChar = false)]
+        [DllImport(STORMLIB, CallingConvention = CallingConvention.Winapi, ExactSpelling = true, PreserveSig = true, SetLastError = true, ThrowOnUnmappableChar = false, BestFitMapping = false)]
         public static extern bool SFileSetFileLocale(
             MpqFileSafeHandle hFile,
             uint lcNewLocale
             );
 
-        [DllImport(STORMLIB, CallingConvention = CallingConvention.Winapi, ExactSpelling = true, PreserveSig = true, SetLastError = true, ThrowOnUnmappableChar = false)]
+        [DllImport(STORMLIB, CallingConvention = CallingConvention.Winapi, ExactSpelling = true, PreserveSig = true, SetLastError = true, ThrowOnUnmappableChar = false, BestFitMapping = false)]
         public static extern bool SFileSetDataCompression(uint DataCompression);
 
-        [DllImport(STORMLIB, CallingConvention = CallingConvention.Winapi, ExactSpelling = true, PreserveSig = true, SetLastError = true, ThrowOnUnmappableChar = false)]
+        [DllImport(STORMLIB, CallingConvention = CallingConvention.Winapi, ExactSpelling = true, PreserveSig = true, SetLastError = true, ThrowOnUnmappableChar = false, BestFitMapping = false)]
         public static extern bool SFileSetAddFileCallback(
             MpqArchiveSafeHandle hMpq,
             SFILE_ADDFILE_CALLBACK AddFileCB,
@@ -389,7 +392,7 @@ namespace WDBXEditor.Archives.MPQ.Native
         #endregion
 
         #region Compression and decompression
-        [DllImport(STORMLIB, CallingConvention = CallingConvention.Winapi, ExactSpelling = true, PreserveSig = true, SetLastError = true, ThrowOnUnmappableChar = false)]
+        [DllImport(STORMLIB, CallingConvention = CallingConvention.Winapi, ExactSpelling = true, PreserveSig = true, SetLastError = true, ThrowOnUnmappableChar = false, BestFitMapping = false)]
         public static extern int SCompImplode(
             IntPtr pvOutBuffer,
             ref int pcbOutBuffer,
@@ -397,7 +400,7 @@ namespace WDBXEditor.Archives.MPQ.Native
             int cbInBuffer
             );
 
-        [DllImport(STORMLIB, CallingConvention = CallingConvention.Winapi, ExactSpelling = true, PreserveSig = true, SetLastError = true, ThrowOnUnmappableChar = false)]
+        [DllImport(STORMLIB, CallingConvention = CallingConvention.Winapi, ExactSpelling = true, PreserveSig = true, SetLastError = true, ThrowOnUnmappableChar = false, BestFitMapping = false)]
         public static extern int SCompExplode(
             IntPtr pvOutBuffer,
             ref int pcbOutBuffer,
@@ -405,7 +408,7 @@ namespace WDBXEditor.Archives.MPQ.Native
             int cbInBuffer
             );
 
-        [DllImport(STORMLIB, CallingConvention = CallingConvention.Winapi, ExactSpelling = true, PreserveSig = true, SetLastError = true, ThrowOnUnmappableChar = false)]
+        [DllImport(STORMLIB, CallingConvention = CallingConvention.Winapi, ExactSpelling = true, PreserveSig = true, SetLastError = true, ThrowOnUnmappableChar = false, BestFitMapping = false)]
         public static extern int SCompCompress(
             IntPtr pvOutBuffer,
             ref int pcbOutBuffer,
@@ -416,7 +419,7 @@ namespace WDBXEditor.Archives.MPQ.Native
             int nCmpLevel
             );
 
-        [DllImport(STORMLIB, CallingConvention = CallingConvention.Winapi, ExactSpelling = true, PreserveSig = true, SetLastError = true, ThrowOnUnmappableChar = false)]
+        [DllImport(STORMLIB, CallingConvention = CallingConvention.Winapi, ExactSpelling = true, PreserveSig = true, SetLastError = true, ThrowOnUnmappableChar = false, BestFitMapping = false)]
         public static extern int SCompDecompress(
             IntPtr pvOutBuffer,
             ref int pcbOutBuffer,
@@ -424,7 +427,7 @@ namespace WDBXEditor.Archives.MPQ.Native
             int cbInBuffer
             );
 
-        [DllImport(STORMLIB, CallingConvention = CallingConvention.Winapi, ExactSpelling = true, PreserveSig = true, SetLastError = true, ThrowOnUnmappableChar = false)]
+        [DllImport(STORMLIB, CallingConvention = CallingConvention.Winapi, ExactSpelling = true, PreserveSig = true, SetLastError = true, ThrowOnUnmappableChar = false, BestFitMapping = false)]
         public static extern int SCompDecompress2(
             IntPtr pvOutBuffer,
             ref int pcbOutBuffer,
@@ -432,17 +435,16 @@ namespace WDBXEditor.Archives.MPQ.Native
             int cbInBuffer
             );
 
-
         #endregion
     }
 
-#pragma warning disable 0169,0649
-    internal struct SFILE_CREATE_MPQ
+#pragma warning disable 0169, 0649
+internal struct SFILE_CREATE_MPQ
     {
         public uint cbSize;
         public uint dwMpqVersion;
-        private IntPtr pvUserData;
-        private uint cbUserData;
+        private readonly IntPtr pvUserData;
+        private readonly uint cbUserData;
         public uint dwStreamFlags;
         public uint dwFileFlags1;
         public uint dwFileFlags2;
@@ -452,7 +454,7 @@ namespace WDBXEditor.Archives.MPQ.Native
         public uint dwMaxFileCount;
     }
 
-    internal unsafe struct _SFILE_FIND_DATA
+    internal unsafe struct SFILE_FIND_DATA
     {
         public fixed char cFileName[260];                  // Full name of the found file
 
@@ -467,7 +469,7 @@ namespace WDBXEditor.Archives.MPQ.Native
         public uint lcLocale;                              // Locale version
     }
 
-    internal unsafe struct _TFileEntry
+    internal unsafe struct TFileEntry
     {
         public ulong FileNameHash;
         public ulong ByteOffset;
@@ -483,12 +485,12 @@ namespace WDBXEditor.Archives.MPQ.Native
         public IntPtr szFileName;
     }
 
-    // Provides enough of _TMPQFile to get to the file size and current position.
-    internal unsafe struct _TMPQFileHeader
+    // Provides enough of TMPQFile to get to the file size and current position.
+    internal unsafe struct TMPQFileHeader
     {
         public IntPtr pStream;
         public IntPtr ha;
-        public _TFileEntry* pFileEntry;
+        public TFileEntry* pFileEntry;
         public uint dwFileKey;
         public uint dwFilePos;
     }

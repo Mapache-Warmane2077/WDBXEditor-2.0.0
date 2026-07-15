@@ -11,9 +11,9 @@ namespace WDBXEditor.Archives.MPQ
     public class MpqArchive : IDisposable
     {
         private MpqArchiveSafeHandle _handle;
-        private List<MpqFileStream> _openFiles = new List<MpqFileStream>();
-        private FileAccess _accessType;
-        private List<MpqArchiveCompactingEventHandler> _compactCallbacks = new List<MpqArchiveCompactingEventHandler>();
+        private List<MpqFileStream> _openFiles = [];
+        private readonly FileAccess _accessType;
+        private readonly List<MpqArchiveCompactingEventHandler> _compactCallbacks = [];
         private SFILE_COMPACT_CALLBACK _compactCallback;
 
         #region Constructors / Factories
@@ -49,10 +49,10 @@ namespace WDBXEditor.Archives.MPQ
         //        throw new Win32Exception(); // Implicitly calls GetLastError
         //}
 
-        private MpqArchive(string filePath, MpqArchiveVersion version, MpqFileStreamAttributes listfileAttributes, MpqFileStreamAttributes attributesFileAttributes, int maxFileCount)
+        private MpqArchive(string filePath, MpqArchiveVersion version, int maxFileCount) // IDE0060: Parámetros inútiles eliminados
         {
             if (maxFileCount < 0)
-                throw new ArgumentException("maxFileCount");
+                throw new ArgumentException("Max file count cannot be negative.", nameof(maxFileCount));
 
             SFileOpenArchiveFlags flags = SFileOpenArchiveFlags.TypeIsFile | SFileOpenArchiveFlags.AccessReadWriteShare;
             flags |= (SFileOpenArchiveFlags)version;
@@ -63,17 +63,18 @@ namespace WDBXEditor.Archives.MPQ
 
         public static MpqArchive CreateNew(string mpqPath, MpqArchiveVersion version)
         {
-            return CreateNew(mpqPath, version, MpqFileStreamAttributes.None, MpqFileStreamAttributes.None, int.MaxValue);
+            return CreateNew(mpqPath, version, int.MaxValue); // IDE0060: Actualizado para la nueva firma
         }
 
-        public static MpqArchive CreateNew(string mpqPath, MpqArchiveVersion version, MpqFileStreamAttributes listfileAttributes,
-            MpqFileStreamAttributes attributesFileAttributes, int maxFileCount)
+        public static MpqArchive CreateNew(string mpqPath, MpqArchiveVersion version, int maxFileCount) // IDE0060: Parámetros inútiles eliminados
         {
-            return new MpqArchive(mpqPath, version, listfileAttributes, attributesFileAttributes, maxFileCount);
+            return new MpqArchive(mpqPath, version, maxFileCount);
         }
+
         #endregion
 
         #region Properties
+
         public long MaxFileCount
         {
             get
@@ -84,7 +85,7 @@ namespace WDBXEditor.Archives.MPQ
             set
             {
                 if (value < 0 || value > uint.MaxValue)
-                    throw new ArgumentException("value");
+                    throw new ArgumentException("Value must be a valid positive 32-bit integer.", nameof(value));
                 VerifyHandle();
 
                 if (!NativeMethods.SFileSetMaxFileCount(_handle, unchecked((uint)value)))
@@ -94,8 +95,8 @@ namespace WDBXEditor.Archives.MPQ
 
         private void VerifyHandle()
         {
-            if (_handle == null || _handle.IsInvalid)
-                throw new ObjectDisposedException("MpqArchive");
+            // CA1513: Validación moderna y optimizada
+            ObjectDisposedException.ThrowIf(_handle == null || _handle.IsInvalid, "MpqArchive");
         }
 
         public bool IsPatchedArchive
@@ -106,6 +107,7 @@ namespace WDBXEditor.Archives.MPQ
                 return NativeMethods.SFileIsPatchedArchive(_handle);
             }
         }
+
         #endregion
 
         public void Flush()
@@ -136,9 +138,10 @@ namespace WDBXEditor.Archives.MPQ
                 throw new Win32Exception();
         }
 
-        private void _OnCompact(IntPtr pvUserData, uint dwWorkType, ulong bytesProcessed, ulong totalBytes)
+        // IDE1006: Se eliminó el guion bajo "_" del inicio
+        private void OnCompact(IntPtr pvUserData, uint dwWorkType, ulong bytesProcessed, ulong totalBytes)
         {
-            MpqArchiveCompactingEventArgs args = new MpqArchiveCompactingEventArgs(dwWorkType, bytesProcessed, totalBytes);
+            MpqArchiveCompactingEventArgs args = new(dwWorkType, bytesProcessed, totalBytes);
             OnCompacting(args);
         }
 
@@ -155,7 +158,7 @@ namespace WDBXEditor.Archives.MPQ
             add
             {
                 VerifyHandle();
-                _compactCallback = _OnCompact;
+                _compactCallback = OnCompact;
                 if (!NativeMethods.SFileSetCompactCallback(_handle, _compactCallback, IntPtr.Zero))
                     throw new Win32Exception();
 
@@ -187,8 +190,7 @@ namespace WDBXEditor.Archives.MPQ
 
         public void AddPatchArchives(IEnumerable<string> patchPaths)
         {
-            if (patchPaths == null)
-                throw new ArgumentNullException("patchPaths");
+            ArgumentNullException.ThrowIfNull(patchPaths);
 
             VerifyHandle();
 
@@ -211,11 +213,10 @@ namespace WDBXEditor.Archives.MPQ
         {
             VerifyHandle();
 
-            MpqFileSafeHandle fileHandle;
-            if (!NativeMethods.SFileOpenFileEx(_handle, fileName, 0, out fileHandle))
+            if (!NativeMethods.SFileOpenFileEx(_handle, fileName, 0, out MpqFileSafeHandle fileHandle))
                 throw new Win32Exception();
 
-            MpqFileStream fs = new MpqFileStream(fileHandle, _accessType, this);
+            MpqFileStream fs = new(fileHandle, _accessType, this);
             _openFiles.Add(fs);
             return fs;
         }
@@ -234,7 +235,7 @@ namespace WDBXEditor.Archives.MPQ
 
             return (MpqFileVerificationResults)NativeMethods.SFileVerifyFile(_handle, fileToVerify, 0);
         }
-        
+
         public MpqArchiveVerificationResult VerifyArchive()
         {
             VerifyHandle();
@@ -247,8 +248,10 @@ namespace WDBXEditor.Archives.MPQ
         public void Dispose()
         {
             Dispose(true);
+            // CA1816: Evitar finalización innecesaria por el recolector de basura
+            GC.SuppressFinalize(this);
         }
-
+        
         ~MpqArchive()
         {
             Dispose(false);

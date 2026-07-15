@@ -7,7 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Windows.Forms;
 
-namespace ADGV
+namespace AdvancedDataGridView
 {
 
     [System.ComponentModel.DesignerCategory("")]
@@ -50,14 +50,18 @@ namespace ADGV
         public bool IsSortEnabled { get; set; }
         public bool IsFilterEnabled { get; set; }
 
-        private Hashtable _textStrings = new Hashtable();
-        private List<DataGridViewRow> _filterRows = new List<DataGridViewRow>();
+        // IDE0044 y IDE0090: Hacer de solo lectura y simplificar new
+        private readonly Hashtable _textStrings = [];
+        // IDE0028: Simplificar la inicialización de la recopilación
+        private List<DataGridViewRow> _filterRows = [];
         private FilterType _activeFilterType = FilterType.None;
         private SortType _activeSortType = SortType.None;
         private string _sortString = null;
         private string _filterString = null;
-        private static Point _resizeStartPoint = new Point(1, 1);
-        private Point _resizeEndPoint = new Point(-1, -1);
+        // IDE0044 y IDE0090: Hacer de solo lectura y simplificar new
+        private static readonly Point _resizeStartPoint = new(1, 1);
+        // IDE0090: Simplificar new
+        private Point _resizeEndPoint = new(-1, -1);
         private bool _activated = false;
 
         #region Constructor/Events
@@ -80,9 +84,9 @@ namespace ADGV
             _textStrings.Add("NODESELECTALL", "(Select All)");
             _textStrings.Add("NODESELECTEMPTY", "(Blanks)");
             _textStrings.Add("HIDECOLUMN", "Hide");
-            
+
             InitializeComponent();
-            
+
             DataType = dataType;
         }
 
@@ -103,11 +107,11 @@ namespace ADGV
             customFilterLastFiltersListMenuItem.Image = Properties.Resources.ColumnHeader_Filtered;
             customFilterLastFiltersListMenuItem.Text = _textStrings["CUSTOMFILTER"].ToString();
 
-            //set components values
-            Type[] numberTypes = new[] { typeof(int), typeof(long), typeof(short), typeof(uint), typeof(ulong), typeof(ushort),
-                                         typeof(byte), typeof(sbyte), typeof(decimal), typeof(float), typeof(double) };
+            // IDE0300: Simplificar la inicialización de la recopilación
+            Type[] numberTypes = [typeof(int), typeof(long), typeof(short), typeof(uint), typeof(ulong), typeof(ushort),
+                                         typeof(byte), typeof(sbyte), typeof(decimal), typeof(float), typeof(double)];
 
-            Type[] nonhexTypes = new[] { typeof(decimal), typeof(float), typeof(double) };
+            Type[] nonhexTypes = [typeof(decimal), typeof(float), typeof(double)];
 
             if (numberTypes.Contains(DataType))
             {
@@ -130,7 +134,8 @@ namespace ADGV
             sortDESCMenuItem.ImageScaling = ToolStripItemImageScaling.None;
             sortASCMenuItem.ImageScaling = ToolStripItemImageScaling.None;
 
-            MinimumSize = new Size(PreferredSize.Width, PreferredSize.Height);
+            // IDE0090: Simplificar new
+            MinimumSize = new(PreferredSize.Width, PreferredSize.Height);
             ResizeBox(MinimumSize.Width, MinimumSize.Height);
 
             _activated = true;
@@ -147,25 +152,25 @@ namespace ADGV
                 Close();
         }
 
-        private ImageList GetCheckListStateImages()
+        // CA1822: Marcar como static
+        private static ImageList GetCheckListStateImages()
         {
-            ImageList images = new System.Windows.Forms.ImageList();
-            Bitmap unCheckImg = new Bitmap(16, 16);
-            Bitmap checkImg = new Bitmap(16, 16);
-            Bitmap mixedImg = new Bitmap(16, 16);
+            // IDE0090: Simplificar new
+            ImageList images = new();
+            _ = new Bitmap(16, 16);
+            _ = new Bitmap(16, 16);
+            _ = new Bitmap(16, 16);
 
-            using (Bitmap img = new Bitmap(16, 16))
-            {
-                using (Graphics g = Graphics.FromImage(img))
-                {
-                    CheckBoxRenderer.DrawCheckBox(g, new Point(0, 1), System.Windows.Forms.VisualStyles.CheckBoxState.UncheckedNormal);
-                    unCheckImg = (Bitmap)img.Clone();
-                    CheckBoxRenderer.DrawCheckBox(g, new Point(0, 1), System.Windows.Forms.VisualStyles.CheckBoxState.CheckedNormal);
-                    checkImg = (Bitmap)img.Clone();
-                    CheckBoxRenderer.DrawCheckBox(g, new Point(0, 1), System.Windows.Forms.VisualStyles.CheckBoxState.MixedNormal);
-                    mixedImg = (Bitmap)img.Clone();
-                }
-            }
+            // IDE0063 y IDE0090: Using y new simplificados
+            using Bitmap img = new(16, 16);
+            using Graphics g = Graphics.FromImage(img);
+
+            CheckBoxRenderer.DrawCheckBox(g, new Point(0, 1), System.Windows.Forms.VisualStyles.CheckBoxState.UncheckedNormal);
+            Bitmap unCheckImg = (Bitmap)img.Clone();
+            CheckBoxRenderer.DrawCheckBox(g, new Point(0, 1), System.Windows.Forms.VisualStyles.CheckBoxState.CheckedNormal);
+            Bitmap checkImg = (Bitmap)img.Clone();
+            CheckBoxRenderer.DrawCheckBox(g, new Point(0, 1), System.Windows.Forms.VisualStyles.CheckBoxState.MixedNormal);
+            Bitmap mixedImg = (Bitmap)img.Clone();
 
             images.Images.Add("uncheck", unCheckImg);
             images.Images.Add("check", checkImg);
@@ -201,7 +206,7 @@ namespace ADGV
         }
 
         #endregion
-        
+
         public void SetLoadedMode(bool enabled)
         {
             cancelFilterMenuItem.Enabled = enabled;
@@ -223,13 +228,9 @@ namespace ADGV
             }
         }
 
-        public void Show(Control control, int x, int y, IEnumerable<DataGridViewCell> vals)
-        {
-
-            base.Show(control, x, y);
-        }
-
-        public void Show(Control control, int x, int y, bool _restoreFilter)
+        // IDE0060: Parámetros "vals" y "_restoreFilter" retirados
+        // Al quitar los parámetros sin usar, los dos métodos "Show" quedan idénticos, por lo que se unifican en este solo
+        public new void Show(Control control, int x, int y)
         {
             base.Show(control, x, y);
         }
@@ -242,20 +243,18 @@ namespace ADGV
         #region Sort Methods
         public void SortASC()
         {
-            sortASCMenuItem_Click(this, null);
+            SortASCMenuItem_Click(this, null);
         }
 
         public void SortDESC()
         {
-            sortDESCMenuItem_Click(this, null);
+            SortDESCMenuItem_Click(this, null);
         }
 
         public string SortString
         {
-            get
-            {
-                return _sortString == null ? "" : _sortString;
-            }
+            // IDE0029: Simplificar comprobación null
+            get => _sortString ?? "";
             private set
             {
                 cancelSortMenuItem.Enabled = (value != null && value.Length > 0);
@@ -265,7 +264,7 @@ namespace ADGV
 
         public void CleanSort()
         {
-            string oldsort = SortString;
+            // IDE0059: Se eliminó la asignación innecesaria de "oldsort"
             sortASCMenuItem.Checked = false;
             sortDESCMenuItem.Checked = false;
             _activeSortType = SortType.None;
@@ -277,11 +276,8 @@ namespace ADGV
         #region Filter Methods
         public string FilterString
         {
-            get
-            {
-                return _filterString == null ? "" : _filterString;
-            }
-
+            // IDE0029: Simplificar comprobación null
+            get => _filterString ?? "";
             private set
             {
                 cancelFilterMenuItem.Enabled = (value != null && value.Length > 0);
@@ -292,7 +288,7 @@ namespace ADGV
         public void CleanFilter()
         {
             _activeFilterType = FilterType.None;
-            string oldsort = FilterString;
+            // IDE0059: Se eliminó la asignación innecesaria de "oldsort"
             FilterString = null;
             customFilterLastFiltersListMenuItem.Checked = false;
             _filterRows.Clear();
@@ -300,7 +296,9 @@ namespace ADGV
         #endregion
 
         #region Filter Events
-        private void cancelFilterMenuItem_Click(object sender, EventArgs e)
+
+        // IDE1006: Corrección de nomenclatura
+        private void CancelFilterMenuItem_Click(object sender, EventArgs e)
         {
             string oldfilter = FilterString;
 
@@ -309,20 +307,24 @@ namespace ADGV
 
             //fire Filter changed
             if (oldfilter != FilterString && FilterChanged != null)
-                FilterChanged(this, new EventArgs());
+                FilterChanged(this, EventArgs.Empty); // IDE0090 simplificado
         }
 
-        private void cancelFilterMenuItem_MouseEnter(object sender, EventArgs e)
+        // IDE1006: Corrección de nomenclatura
+        private void CancelFilterMenuItem_MouseEnter(object sender, EventArgs e)
         {
             if ((sender as ToolStripMenuItem).Enabled)
                 (sender as ToolStripMenuItem).Select();
         }
 
-        private void customFilterMenuItem_Click(object sender, EventArgs e)
+        // IDE1006: Corrección de nomenclatura
+        private void CustomFilterMenuItem_Click(object sender, EventArgs e)
         {
-            //open a new Custom filter window
-            FilterForm flt = new FilterForm(DataType);
-            flt.FilterRows = _filterRows;
+            // IDE0017 y IDE0090: Inicialización simplificada
+            FilterForm flt = new(DataType)
+            {
+                FilterRows = _filterRows
+            };
 
             if (flt.ShowDialog() == DialogResult.OK)
             {
@@ -338,36 +340,42 @@ namespace ADGV
 
                 //fire Filter changed
                 if (oldfilter != FilterString && FilterChanged != null)
-                    FilterChanged(this, new EventArgs());
+                    FilterChanged(this, EventArgs.Empty); // IDE0090 simplificado
             }
         }
 
-        private void customFilterLastFilter1MenuItem_VisibleChanged(object sender, EventArgs e)
+        // IDE1006: Corrección de nomenclatura
+        private void CustomFilterLastFilter1MenuItem_VisibleChanged(object sender, EventArgs e)
         {
-            (sender as ToolStripMenuItem).VisibleChanged -= customFilterLastFilter1MenuItem_VisibleChanged;
+            (sender as ToolStripMenuItem).VisibleChanged -= CustomFilterLastFilter1MenuItem_VisibleChanged;
         }
 
-        private void customFilterLastFilterMenuItem_TextChanged(object sender, EventArgs e)
+        // IDE1006: Corrección de nomenclatura
+        private void CustomFilterLastFilterMenuItem_TextChanged(object sender, EventArgs e)
         {
             (sender as ToolStripMenuItem).Available = true;
-            (sender as ToolStripMenuItem).TextChanged -= customFilterLastFilterMenuItem_TextChanged;
+            (sender as ToolStripMenuItem).TextChanged -= CustomFilterLastFilterMenuItem_TextChanged;
         }
 
         #endregion
 
         #region Click Events
-        private void hexDisplayMenuItem_Click(object sender, EventArgs e)
+
+        // IDE1006: Corrección de nomenclatura
+        private void HexDisplayMenuItem_Click(object sender, EventArgs e)
         {
             hexDisplayMenuItem.Checked = !hexDisplayMenuItem.Checked;
-            HexChanged(this, new EventArgs());
+            HexChanged?.Invoke(this, EventArgs.Empty);
         }
 
-        private void hideMenuItem_Click(object sender, EventArgs e)
+        // IDE1006: Corrección de nomenclatura
+        private void HideMenuItem_Click(object sender, EventArgs e)
         {
-            HideChanged(this, new EventArgs());
+            HideChanged?.Invoke(this, EventArgs.Empty);
         }
 
-        private void sortASCMenuItem_Click(object sender, EventArgs e)
+        // IDE1006: Corrección de nomenclatura
+        private void SortASCMenuItem_Click(object sender, EventArgs e)
         {
             sortASCMenuItem.Checked = true;
             sortDESCMenuItem.Checked = false;
@@ -379,16 +387,18 @@ namespace ADGV
 
             //fire Sort Changed
             if (oldsort != SortString && SortChanged != null)
-                SortChanged(this, new EventArgs());
+                SortChanged(this, EventArgs.Empty);
         }
 
-        private void sortASCMenuItem_MouseEnter(object sender, EventArgs e)
+        // IDE1006: Corrección de nomenclatura
+        private void SortASCMenuItem_MouseEnter(object sender, EventArgs e)
         {
             if ((sender as ToolStripMenuItem).Enabled)
                 (sender as ToolStripMenuItem).Select();
         }
 
-        private void sortDESCMenuItem_Click(object sender, EventArgs e)
+        // IDE1006: Corrección de nomenclatura
+        private void SortDESCMenuItem_Click(object sender, EventArgs e)
         {
             sortASCMenuItem.Checked = false;
             sortDESCMenuItem.Checked = true;
@@ -400,26 +410,29 @@ namespace ADGV
 
             //fire Sort Changed
             if (oldsort != SortString && SortChanged != null)
-                SortChanged(this, new EventArgs());
+                SortChanged(this, EventArgs.Empty);
         }
 
-        private void sortDESCMenuItem_MouseEnter(object sender, EventArgs e)
+        // IDE1006: Corrección de nomenclatura
+        private void SortDESCMenuItem_MouseEnter(object sender, EventArgs e)
         {
             if ((sender as ToolStripMenuItem).Enabled)
                 (sender as ToolStripMenuItem).Select();
         }
 
-        private void cancelSortMenuItem_Click(object sender, EventArgs e)
+        // IDE1006: Corrección de nomenclatura
+        private void CancelSortMenuItem_Click(object sender, EventArgs e)
         {
             string oldsort = SortString;
             //clean Sort
             CleanSort();
             //fire Sort changed
             if (oldsort != SortString && SortChanged != null)
-                SortChanged(this, new EventArgs());
+                SortChanged(this, EventArgs.Empty);
         }
 
-        private void cancelSortMenuItem_MouseEnter(object sender, EventArgs e)
+        // IDE1006: Corrección de nomenclatura
+        private void CancelSortMenuItem_MouseEnter(object sender, EventArgs e)
         {
             if ((sender as ToolStripMenuItem).Enabled)
                 (sender as ToolStripMenuItem).Select();
@@ -448,13 +461,14 @@ namespace ADGV
             {
                 Point startPoint = PointToScreen(ColumnMenu._resizeStartPoint);
 
-                Rectangle rc = new Rectangle(startPoint.X, startPoint.Y, _resizeEndPoint.X, _resizeEndPoint.Y);
-
-                rc.X = Math.Min(startPoint.X, _resizeEndPoint.X);
-                rc.Width = Math.Abs(startPoint.X - _resizeEndPoint.X);
-
-                rc.Y = Math.Min(startPoint.Y, _resizeEndPoint.Y);
-                rc.Height = Math.Abs(startPoint.Y - _resizeEndPoint.Y);
+                // IDE0017 y IDE0090: Inicialización simplificada
+                Rectangle rc = new(startPoint.X, startPoint.Y, _resizeEndPoint.X, _resizeEndPoint.Y)
+                {
+                    X = Math.Min(startPoint.X, _resizeEndPoint.X),
+                    Width = Math.Abs(startPoint.X - _resizeEndPoint.X),
+                    Y = Math.Min(startPoint.Y, _resizeEndPoint.Y),
+                    Height = Math.Abs(startPoint.Y - _resizeEndPoint.Y)
+                };
 
                 ControlPaint.DrawReversibleFrame(rc, Color.Black, FrameStyle.Dashed);
 

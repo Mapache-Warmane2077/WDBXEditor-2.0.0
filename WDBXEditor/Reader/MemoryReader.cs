@@ -9,12 +9,12 @@ using System.Threading.Tasks;
 
 namespace WDBXEditor.Reader
 {
-    public class MemoryReader : IDisposable
+    public partial class MemoryReader : IDisposable
     {
         public ulong BaseAddress { get; private set; }
         public IntPtr ProcessHandle { get; private set; }
 
-        private Process process;
+        private readonly Process process;
 
         public MemoryReader(Process proc)
         {
@@ -47,8 +47,7 @@ namespace WDBXEditor.Reader
         public byte[] ReadBytes(IntPtr address, uint count)
         {
             var buffer = new byte[count];
-            int bytesRead;
-            if (!ReadProcessMemory(ProcessHandle, address, buffer, count, out bytesRead))
+            if (!ReadProcessMemory(ProcessHandle, address, buffer, count, out int bytesRead))
                 throw new Win32Exception(Marshal.GetLastWin32Error());
 
             if (bytesRead != count)
@@ -59,8 +58,8 @@ namespace WDBXEditor.Reader
         public T Read<T>(IntPtr address) where T : struct
         {
             object ret = default(T);
-            var buffer = new byte[0];
-
+            _ = Array.Empty<byte>();
+            byte[] buffer;
             if (typeof(T) == typeof(string))
                 return (T)(object)ReadCString(address);
             else
@@ -125,21 +124,21 @@ namespace WDBXEditor.Reader
                 i++;
                 current = Read<byte>((IntPtr)(address.ToInt32() + i));
             }
-            return Encoding.UTF8.GetString(buffer.ToArray());
+            return Encoding.UTF8.GetString([.. buffer]);
         }
 
         #region PInvokes
 
-        [DllImport("kernel32.dll", SetLastError = true, PreserveSig = true)]
+        [LibraryImport("kernel32.dll", SetLastError = true)] // Se eliminó PreserveSig = true
         [return: MarshalAs(UnmanagedType.Bool)]
-        private static extern bool ReadProcessMemory(IntPtr hProcess, IntPtr lpBaseAddress, byte[] lpBuffer, uint nSize, out int lpNumberOfBytesRead);
+        private static partial bool ReadProcessMemory(IntPtr hProcess, IntPtr lpBaseAddress, [Out] byte[] lpBuffer, uint nSize, out int lpNumberOfBytesRead);
 
-        [DllImport("kernel32.dll")]
-        private static extern IntPtr OpenProcess(ProcessAccess dwDesiredAccess, [MarshalAs(UnmanagedType.Bool)] bool bInheritHandle, int dwProcessId);
+        [LibraryImport("kernel32.dll")]
+        private static partial IntPtr OpenProcess(ProcessAccess dwDesiredAccess, [MarshalAs(UnmanagedType.Bool)] bool bInheritHandle, int dwProcessId);
 
-        [DllImport("kernel32.dll", SetLastError = true)]
+        [LibraryImport("kernel32.dll", SetLastError = true)]
         [return: MarshalAs(UnmanagedType.Bool)]
-        private static extern bool CloseHandle(IntPtr hObject);
+        private static partial bool CloseHandle(IntPtr hObject);
 
         private enum ProcessAccess
         {

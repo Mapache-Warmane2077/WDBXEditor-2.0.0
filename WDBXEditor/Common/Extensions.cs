@@ -29,7 +29,7 @@ namespace WDBXEditor.Common
         /// <param name="d1"></param>
         /// <param name="d2"></param>
         /// <returns></returns>
-        public static CompareResult ShallowCompare(this DataTable d1, DataTable d2, bool checktype = true)
+        public static CompareResult ShallowCompare(this DataTable d1, DataTable d2) // <-- Parámetro 'checktype' eliminado
         {
             //Column count - fast and quick
             if (d1.Columns.Count != d2.Columns.Count)
@@ -71,7 +71,7 @@ namespace WDBXEditor.Common
         /// <returns></returns>
         public static string ToSql(this DataColumnCollection cols, string primaryKey = "")
         {
-            StringBuilder sb = new StringBuilder();
+            StringBuilder sb = new();
             foreach (DataColumn col in cols)
             {
                 switch (col.DataType.Name)
@@ -126,7 +126,7 @@ namespace WDBXEditor.Common
         /// <returns></returns>
         public static string ToSql(this DataRow row)
         {
-            StringBuilder sb = new StringBuilder();
+            StringBuilder sb = new();
             DataColumnCollection cols = row.Table.Columns;
             CultureInfo ci = CultureInfo.CreateSpecificCulture("en-US");
 
@@ -158,7 +158,7 @@ namespace WDBXEditor.Common
         /// <returns></returns>
         public static string Reverse(this string s)
         {
-            return new string(s.ToCharArray().Reverse().ToArray());
+            return new string([.. s.ToCharArray().Reverse()]);
         }
 
         /// <summary>
@@ -175,10 +175,14 @@ namespace WDBXEditor.Common
             return Regex.Replace(text, find, replacement, options);
         }
 
+        /// <summary>
+        /// Guarda la estructura y los datos de la tabla en un archivo.
+        /// Actualizado de BinaryFormatter a XML para compatibilidad con .NET moderno.
+        /// </summary>
         public static void Detach(this DataTable table, string path)
         {
-            using (FileStream stream = new FileStream(path, FileMode.Create))
-                new BinaryFormatter().Serialize(stream, table);
+            // Escribe tanto el esquema (columnas y tipos) como los datos de forma segura en formato XML
+            table.WriteXml(path, XmlWriteMode.WriteSchema);
         }
 
         public static object DefaultValue<T>(this T type) where T : Type

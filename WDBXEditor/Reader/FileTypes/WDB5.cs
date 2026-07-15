@@ -48,7 +48,7 @@ namespace WDBXEditor.Reader.FileTypes
                 IdIndex = 0; //Ignored if Index Table
 
             //Gather field structures
-            FieldStructure = new List<FieldStructureEntry>();
+            FieldStructure = [];
             for (int i = 0; i < FieldCount; i++)
             {
                 var field = new FieldStructureEntry(dbReader.ReadInt16(), (ushort)(dbReader.ReadUInt16() + (HasIndexTable ? 4 : 0)));
@@ -60,7 +60,7 @@ namespace WDBXEditor.Reader.FileTypes
 
             if (HasIndexTable)
             {
-				FieldCount++;
+                FieldCount++;
                 FieldStructure.Insert(0, new FieldStructureEntry(0, 0));
 
                 if (FieldCount > 1)
@@ -70,9 +70,9 @@ namespace WDBXEditor.Reader.FileTypes
 
         public Dictionary<int, byte[]> ReadOffsetData(BinaryReader dbReader, long pos)
         {
-            Dictionary<int, byte[]> CopyTable = new Dictionary<int, byte[]>();
-            List<Tuple<int, short>> offsetmap = new List<Tuple<int, short>>();
-            Dictionary<int, OffsetDuplicate> firstindex = new Dictionary<int, OffsetDuplicate>();
+            Dictionary<int, byte[]> CopyTable = [];
+            List<Tuple<int, short>> offsetmap = [];
+            Dictionary<int, OffsetDuplicate> firstindex = [];
 
             long copyTablePos = dbReader.BaseStream.Length - CopyTableSize;
             long indexTablePos = copyTablePos - (HasIndexTable ? RecordCount * 4 : 0);
@@ -94,18 +94,18 @@ namespace WDBXEditor.Reader.FileTypes
                     //Special case, may contain duplicates in the offset map that we don't want
                     if (CopyTableSize == 0)
                     {
-                        if (!firstindex.ContainsKey(offset))
+                        if (!firstindex.TryGetValue(offset, out OffsetDuplicate value))
                             firstindex.Add(offset, new OffsetDuplicate(offsetmap.Count, firstindex.Count));
                         else
-                            OffsetDuplicates.Add(MinId + i, firstindex[offset].VisibleIndex);
+                            OffsetDuplicates.Add(MinId + i, value.VisibleIndex);
                     }
 
                     offsetmap.Add(new Tuple<int, short>(offset, length));
                 }
             }
 
-			if(HasRelationshipData)
-				dbReader.BaseStream.Position += (MaxId - MinId + 1) * 4;
+            if (HasRelationshipData)
+                dbReader.BaseStream.Position += (MaxId - MinId + 1) * 4;
 
             //Index table
             if (HasIndexTable)
@@ -133,7 +133,7 @@ namespace WDBXEditor.Reader.FileTypes
                     dbReader.Scrub(map.Item1);
 
                     IEnumerable<byte> recordbytes = BitConverter.GetBytes(id).Concat(dbReader.ReadBytes(map.Item2));
-                    CopyTable.Add(id, recordbytes.ToArray());
+                    CopyTable.Add(id, [.. recordbytes]);
                 }
                 else
                 {
@@ -143,7 +143,7 @@ namespace WDBXEditor.Reader.FileTypes
                     if (HasIndexTable)
                     {
                         IEnumerable<byte> newrecordbytes = BitConverter.GetBytes(m_indexes[i]).Concat(recordbytes);
-                        CopyTable.Add(m_indexes[i], newrecordbytes.ToArray());
+                        CopyTable.Add(m_indexes[i], [.. newrecordbytes]);
                     }
                     else
                     {
@@ -183,20 +183,14 @@ namespace WDBXEditor.Reader.FileTypes
         public override byte[] ReadData(BinaryReader dbReader, long pos)
         {
             Dictionary<int, byte[]> CopyTable = ReadOffsetData(dbReader, pos);
-            OffsetLengths = CopyTable.Select(x => x.Value.Length).ToArray();
-            return CopyTable.Values.SelectMany(x => x).ToArray();
+            OffsetLengths = [.. CopyTable.Select(x => x.Value.Length)];
+            return [.. CopyTable.Values.SelectMany(x => x)];
         }
 
-        internal struct OffsetDuplicate
+        internal struct OffsetDuplicate(int hidden, int visible)
         {
-            public int HiddenIndex { get; set; }
-            public int VisibleIndex { get; set; }
-
-            public OffsetDuplicate(int hidden, int visible)
-            {
-                this.HiddenIndex = hidden;
-                this.VisibleIndex = visible;
-            }
+            public int HiddenIndex { get; set; } = hidden;
+            public int VisibleIndex { get; set; } = visible;
         }
         #endregion
 
@@ -248,9 +242,9 @@ namespace WDBXEditor.Reader.FileTypes
                     bw.Write(kvp.Item2);
                     m++;
                 }
-                else if (duplicates.ContainsKey(x)) //Reinsert our duplicates
+                else if (duplicates.TryGetValue(x, out int value)) //Reinsert our duplicates
                 {
-                    var hiddenkvp = OffsetMap[duplicates[x]];
+                    var hiddenkvp = OffsetMap[value];
                     bw.Write(hiddenkvp.Item1 + record_offset);
                     bw.Write(hiddenkvp.Item2);
                 }
@@ -270,14 +264,14 @@ namespace WDBXEditor.Reader.FileTypes
             int index = entry.Data.Columns.IndexOf(entry.Key);
 
             if (!HasOffsetTable && entry.Header.CopyTableSize > 0)
-                ids = entry.GetUniqueRows().Select(x => x.Field<int>(index)).ToArray();
+                ids = [.. entry.GetUniqueRows().Select(x => x.Field<int>(index))];
             else
-                ids = entry.GetPrimaryKeys().ToArray();
+                ids = [.. entry.GetPrimaryKeys()];
 
             if (entry.Header.HasRelationshipData)
             {
                 //TODO figure out if it is always the 2nd column
-                ushort[] secondids = entry.Data.Rows.Cast<DataRow>().Select(x => x.Field<ushort>(2)).ToArray();
+                ushort[] secondids = [.. entry.Data.Rows.Cast<DataRow>().Select(x => x.Field<ushort>(2))];
 
                 //Write all of the secondary ids
                 foreach (ushort id in secondids)
@@ -299,10 +293,9 @@ namespace WDBXEditor.Reader.FileTypes
         {
             if (HasOffsetTable || CopyTableSize == 0)
                 return;
-
-            int index = entry.Data.Columns.IndexOf(entry.Key);
+            _ = entry.Data.Columns.IndexOf(entry.Key);
             var copyRows = entry.GetCopyRows();
-            if (copyRows.Count() > 0)
+            if (copyRows.Any())
             {
                 int size = 0;
                 foreach (var copies in copyRows)

@@ -47,7 +47,7 @@ namespace WDBXEditor
         }
 
         #region Buttons
-        private void btnRefresh_Click(object sender, EventArgs e)
+        private void BtnRefresh_Click(object sender, EventArgs e)
         {
             ddlDatabases.Items.Clear();
             testedconnection = false;
@@ -55,22 +55,18 @@ namespace WDBXEditor
 
             try
             {
-                using (MySqlConnection connection = new MySqlConnection(ConnectionString))
-                {
-                    connection.Open();
-                    MySqlCommand command = new MySqlCommand("SHOW DATABASES;", connection);
-                    using (var rdr = command.ExecuteReader())
-                    {
-                        ddlDatabases.Items.Add("");
+                using MySqlConnection connection = new(ConnectionString);
+                connection.Open();
+                MySqlCommand command = new("SHOW DATABASES;", connection);
+                using var rdr = command.ExecuteReader();
+                ddlDatabases.Items.Add("");
 
-                        while (rdr.Read())
-                            ddlDatabases.Items.Add(rdr[0].ToString());
+                while (rdr.Read())
+                    ddlDatabases.Items.Add(rdr[0].ToString());
 
-                        testedconnection = true;
-                        ddlDatabases.Enabled = true;
-                        SaveSettings();
-                    }
-                }
+                testedconnection = true;
+                ddlDatabases.Enabled = true;
+                SaveSettings();
             }
             catch (MySqlException ex)
             {
@@ -78,13 +74,13 @@ namespace WDBXEditor
             }
         }
 
-        private void btnClose_Click(object sender, EventArgs e)
+        private void BtnClose_Click(object sender, EventArgs e)
         {
             this.DialogResult = DialogResult.Cancel;
             this.Close();
         }
 
-        private void btnLoad_Click(object sender, EventArgs e)
+        private void BtnLoad_Click(object sender, EventArgs e)
         {
             if (!ConnectionOnly)
             {
@@ -116,7 +112,7 @@ namespace WDBXEditor
                     }
 
                 })
-				.ContinueWith(x =>
+                .ContinueWith(x =>
                 {
                     this.Enabled = true;
                     this.DialogResult = x.Result;
@@ -132,7 +128,7 @@ namespace WDBXEditor
         #endregion
 
         #region Dropdown Methods
-        private void ddlDatabases_SelectedIndexChanged(object sender, EventArgs e)
+        private void DdlDatabases_SelectedIndexChanged(object sender, EventArgs e)
         {
             if (ddlTable.Enabled)
             {
@@ -140,17 +136,13 @@ namespace WDBXEditor
 
                 try
                 {
-                    using (MySqlConnection connection = new MySqlConnection(ConnectionString))
-                    {
-                        connection.Open();
-                        MySqlCommand command = new MySqlCommand($"USE {ddlDatabases.Text}; SHOW TABLES;", connection);
-                        using (var rdr = command.ExecuteReader())
-                        {
-                            ddlTable.Items.Add("");
-                            while (rdr.Read())
-                                ddlTable.Items.Add(rdr[0].ToString());
-                        }
-                    }
+                    using MySqlConnection connection = new(ConnectionString);
+                    connection.Open();
+                    MySqlCommand command = new($"USE {ddlDatabases.Text}; SHOW TABLES;", connection);
+                    using var rdr = command.ExecuteReader();
+                    ddlTable.Items.Add("");
+                    while (rdr.Read())
+                        ddlTable.Items.Add(rdr[0].ToString());
                 }
                 catch { return; }
             }
@@ -160,7 +152,7 @@ namespace WDBXEditor
                               (!string.IsNullOrWhiteSpace(ddlTable.Text) || !ddlTable.Enabled); //Table selected/not applicable
         }
 
-        private void ddlTable_SelectedIndexChanged(object sender, EventArgs e)
+        private void DdlTable_SelectedIndexChanged(object sender, EventArgs e)
         {
             btnLoad.Enabled = !string.IsNullOrWhiteSpace(ddlDatabases.Text) && //Database selected
                              testedconnection && //Connection works

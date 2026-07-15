@@ -13,7 +13,7 @@ namespace WDBXEditor.Forms
     public partial class ErrorReport : Form
     {
         public string Message { get; set; }
-        public IEnumerable<string> Errors { get; set;}
+        public IEnumerable<string> Errors { get; set; }
 
         public ErrorReport()
         {

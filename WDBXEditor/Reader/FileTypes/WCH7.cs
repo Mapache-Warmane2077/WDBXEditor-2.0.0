@@ -11,7 +11,7 @@ namespace WDBXEditor.Reader.FileTypes
 {
     class WCH7 : WCH5
     {
-        public int[] WCH7Table { get; private set; } = new int[0];
+        public int[] WCH7Table { get; private set; } = [];
 
         public WCH7()
         {
@@ -29,14 +29,14 @@ namespace WDBXEditor.Reader.FileTypes
         public override byte[] ReadData(BinaryReader dbReader, long pos)
         {
             Dictionary<int, byte[]> CopyTable = ReadOffsetData(dbReader, pos);
-            OffsetLengths = CopyTable.Select(x => x.Value.Length).ToArray();
-            return CopyTable.Values.SelectMany(x => x).ToArray();
+            OffsetLengths = [.. CopyTable.Select(x => x.Value.Length)];
+            return [.. CopyTable.Values.SelectMany(x => x)];
         }
 
         public new Dictionary<int, byte[]> ReadOffsetData(BinaryReader dbReader, long pos)
         {
-            Dictionary<int, byte[]> CopyTable = new Dictionary<int, byte[]>();
-            List<OffsetEntry> offsetmap = new List<OffsetEntry>();
+            Dictionary<int, byte[]> CopyTable = [];
+            List<OffsetEntry> offsetmap = [];
 
             long indexTablePos = dbReader.BaseStream.Length - (HasIndexTable ? RecordCount * 4 : 0);
             long wch7TablePos = indexTablePos - (UnknownWCH7 * 4);
@@ -92,7 +92,7 @@ namespace WDBXEditor.Reader.FileTypes
                     dbReader.Scrub(map.Offset);
 
                     IEnumerable<byte> recordbytes = BitConverter.GetBytes(map.Id).Concat(dbReader.ReadBytes(map.Length));
-                    CopyTable.Add(map.Id, recordbytes.ToArray());
+                    CopyTable.Add(map.Id, [.. recordbytes]);
                 }
                 else
                 {
@@ -102,7 +102,7 @@ namespace WDBXEditor.Reader.FileTypes
                     if (HasIndexTable)
                     {
                         IEnumerable<byte> newrecordbytes = BitConverter.GetBytes(m_indexes[i]).Concat(recordbytes);
-                        CopyTable.Add(m_indexes[i], newrecordbytes.ToArray());
+                        CopyTable.Add(m_indexes[i], [.. newrecordbytes]);
                     }
                     else
                     {

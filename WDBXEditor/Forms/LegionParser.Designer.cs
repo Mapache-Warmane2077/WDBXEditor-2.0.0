@@ -54,7 +54,7 @@
             this.btnSelect.TabIndex = 0;
             this.btnSelect.Text = "Select Files";
             this.btnSelect.UseVisualStyleBackColor = true;
-            this.btnSelect.Click += new System.EventHandler(this.btnSelect_Click);
+            this.btnSelect.Click += new System.EventHandler(this.BtnSelect_Click);
             // 
             // label1
             // 
@@ -81,7 +81,7 @@
             this.btnParse.TabIndex = 3;
             this.btnParse.Text = "Parse";
             this.btnParse.UseVisualStyleBackColor = true;
-            this.btnParse.Click += new System.EventHandler(this.btnParse_Click);
+            this.btnParse.Click += new System.EventHandler(this.BtnParse_Click);
             // 
             // btnClose
             // 
@@ -102,7 +102,7 @@
             this.btnSave.TabIndex = 5;
             this.btnSave.Text = "Save";
             this.btnSave.UseVisualStyleBackColor = true;
-            this.btnSave.Click += new System.EventHandler(this.btnSave_Click);
+            this.btnSave.Click += new System.EventHandler(this.BtnSave_Click);
             // 
             // rdoCASC
             // 

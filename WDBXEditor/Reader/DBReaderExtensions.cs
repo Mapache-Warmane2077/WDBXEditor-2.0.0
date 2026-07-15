@@ -1,4 +1,4 @@
-﻿﻿using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -11,12 +11,12 @@ namespace WDBXEditor.Reader
         public static string ReadStringNull(this BinaryReader reader)
         {
             byte num;
-            List<byte> temp = new List<byte>();
+            List<byte> temp = [];
 
             while ((num = reader.ReadByte()) != 0)
                 temp.Add(num);
 
-            return Encoding.UTF8.GetString(temp.ToArray());
+            return Encoding.UTF8.GetString([.. temp]);
         }
 
         public static sbyte[] ReadSByte(this BinaryReader br, int count)
@@ -92,7 +92,7 @@ namespace WDBXEditor.Reader
         {
             if (map == null)
                 return br.ReadInt32();
-            
+
             byte[] b = new byte[sizeof(int)];
             for (int i = 0; i < map.ByteCount; i++)
                 b[i] = br.ReadByte();

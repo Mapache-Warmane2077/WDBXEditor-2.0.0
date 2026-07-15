@@ -6,14 +6,14 @@ using System.Threading.Tasks;
 
 namespace WDBXEditor.Reader
 {
-    public class FieldStructureEntry
+    public class FieldStructureEntry(short bits, ushort offset, byte commondatatype = 0xFF)
     {
-        public short Bits;
-        public ushort Offset;
+        public short Bits = bits;
+        public ushort Offset = offset;
         public int Length = 1;
 
         public bool CommonDataColumn => CommonDataType != 0xFF;
-        public byte CommonDataType;
+        public byte CommonDataType = commondatatype;
 
         public int ByteCount
         {
@@ -24,23 +24,15 @@ namespace WDBXEditor.Reader
             }
         }
 
-		public int BitCount
-		{
-			get
-			{
-				int bitSize = 32 - Bits;
-				if (bitSize < 0)
-					bitSize = (bitSize * -1) + 32;
-				return bitSize;
-			}
-		}
-
-
-        public FieldStructureEntry(short bits, ushort offset, byte commondatatype = 0xFF)
+        public int BitCount
         {
-            this.Bits = bits;
-            this.Offset = offset;
-            this.CommonDataType = commondatatype;
+            get
+            {
+                int bitSize = 32 - Bits;
+                if (bitSize < 0)
+                    bitSize = (bitSize * -1) + 32;
+                return bitSize;
+            }
         }
 
         public void SetLength(FieldStructureEntry nextField)

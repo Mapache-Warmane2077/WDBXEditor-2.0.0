@@ -6,7 +6,7 @@ using static WDBXEditor.Common.Constants;
 using System.Collections.Generic;
 using System.IO;
 using System.Globalization;
-using System.Web.Script.Serialization;
+using Newtonsoft.Json;
 using WDBXEditor.Reader;
 
 namespace WDBXEditor.Forms
@@ -15,9 +15,9 @@ namespace WDBXEditor.Forms
     {
         private Process proc = null;
         private MemoryReader reader = null;
-        private HashSet<OffsetMap> offsetmaps = new HashSet<OffsetMap>();
+        private readonly HashSet<OffsetMap> offsetmaps = [];
         private OffsetMap curmap;
-        private BindingSource _binding = new BindingSource();
+        private readonly BindingSource _binding = [];
         private bool _closing = false;
 
         private uint FirstObject = 0;
@@ -54,7 +54,7 @@ namespace WDBXEditor.Forms
                 try
                 {
                     string json = File.ReadAllText(OFFSET_MAP_PATH);
-                    var offsets = new JavaScriptSerializer().Deserialize<List<OffsetMap>>(json);
+                    var offsets = JsonConvert.DeserializeObject<List<OffsetMap>>(json);
                     offsetmaps.UnionWith(offsets);
                 }
                 catch
@@ -80,7 +80,8 @@ namespace WDBXEditor.Forms
             cbProcessSelector.ValueMember = "Value";
             cbProcessSelector.DisplayMember = "Key";
 
-            var procs = Process.GetProcesses().Where(x => x.ProcessName.IndexOf("wow", IGNORECASE) >= 0);
+            // CA2249: Simplificado usando Contains, el cual ahora soporta el parámetro de comparación
+            var procs = Process.GetProcesses().Where(x => x.ProcessName.Contains("wow", IGNORECASE));
             foreach (var proc in procs)
                 cbProcessSelector.Items.Add(new KeyValuePair<string, Process>($"{proc.ProcessName} ({proc.Id})", proc));
 
@@ -103,17 +104,17 @@ namespace WDBXEditor.Forms
 
         private void SaveBuilds()
         {
-            string json = new JavaScriptSerializer().Serialize(offsetmaps);
+            string json = JsonConvert.SerializeObject(offsetmaps);
             using (var fs = File.CreateText(OFFSET_MAP_PATH))
                 fs.Write(json);
 
             LoadBuilds();
-            cbProcessSelector_SelectedIndexChanged(cbProcessSelector, null);
+            CbProcessSelector_SelectedIndexChanged(cbProcessSelector, null);
         }
         #endregion
 
         #region Dropdowns
-        private void cbProcessSelector_SelectedIndexChanged(object sender, EventArgs e)
+        private void CbProcessSelector_SelectedIndexChanged(object sender, EventArgs e)
         {
             proc = ((KeyValuePair<string, Process>)cbProcessSelector.SelectedItem).Value;
             if (proc == null || proc.HasExited) //Process is unavailable
@@ -148,15 +149,17 @@ namespace WDBXEditor.Forms
             btnTarget.Enabled = true;
         }
 
-        private void cbBuildSelector_SelectedIndexChanged(object sender, EventArgs e)
+        private void CbBuildSelector_SelectedIndexChanged(object sender, EventArgs e)
         {
             _binding.DataSource = ((KeyValuePair<string, OffsetMap>)cbBuildSelector.SelectedItem).Value;
             curmap = (OffsetMap)_binding.DataSource;
         }
+
         #endregion
 
         #region Button Events
-        private void btnTarget_Click(object sender, EventArgs e)
+
+        private void BtnTarget_Click(object sender, EventArgs e)
         {
             reader = new MemoryReader(proc);
             switch (LoadAddresses())
@@ -174,25 +177,25 @@ namespace WDBXEditor.Forms
             }
         }
 
-        private void btnUntarget_Click(object sender, EventArgs e)
+        private void BtnUntarget_Click(object sender, EventArgs e)
         {
             tmrLoop.Enabled = false;
             btnUntarget.Enabled = false;
             btnTarget.Enabled = true;
         }
 
-        private void chkAuto_CheckedChanged(object sender, EventArgs e)
+        private void ChkAuto_CheckedChanged(object sender, EventArgs e)
         {
             tmrLoop.Enabled = chkAuto.Checked;
         }
 
-        private void btnGetPos_Click(object sender, EventArgs e)
+        private void BtnGetPos_Click(object sender, EventArgs e)
         {
             if (!GetLocation())
-                btnUntarget_Click(btnUntarget, null);
+                BtnUntarget_Click(btnUntarget, null); // Actualizado para coincidir con la nueva nomenclatura
         }
 
-        private void btnSave_Click(object sender, EventArgs e)
+        private void BtnSave_Click(object sender, EventArgs e)
         {
             curmap.UseBase = chkUseBase.Checked;
             curmap.ClientConnection = ParseOffset(txtClientConnection.Text);
@@ -212,7 +215,7 @@ namespace WDBXEditor.Forms
             SaveBuilds();
         }
 
-        private void btnDelete_Click(object sender, EventArgs e)
+        private void BtnDelete_Click(object sender, EventArgs e)
         {
             if (string.IsNullOrWhiteSpace(curmap.Name))
                 return;
@@ -224,14 +227,16 @@ namespace WDBXEditor.Forms
             }
         }
 
-        private void btnRefresh_Click(object sender, EventArgs e)
+        private void BtnRefresh_Click(object sender, EventArgs e)
         {
             cbProcessSelector.SelectedIndex = 0;
             LoadProcesses();
         }
+
         #endregion
 
         #region Memory Reading
+
         private ErrorReason LoadAddresses()
         {
             try
@@ -256,11 +261,9 @@ namespace WDBXEditor.Forms
         private uint GetBaseByGuid(ulong Guid)
         {
             uint baseaddress = FirstObject;
-            ulong guid = 0;
-
             while (baseaddress != 0 && !proc.HasExited)
             {
-                guid = reader.Read<ulong>((IntPtr)(baseaddress + curmap.Guid));
+                ulong guid = reader.Read<ulong>((IntPtr)(baseaddress + curmap.Guid));
                 if (guid == Guid)
                     return baseaddress;
 
@@ -287,10 +290,10 @@ namespace WDBXEditor.Forms
             catch { return false; }
         }
 
-        private void tmrLoop_Tick(object sender, EventArgs e)
+        private void TmrLoop_Tick(object sender, EventArgs e)
         {
             if (!GetLocation())
-                btnUntarget_Click(btnUntarget, null);
+                BtnUntarget_Click(btnUntarget, null); // Actualizado para coincidir con la nueva nomenclatura
         }
         #endregion
 
@@ -316,9 +319,9 @@ namespace WDBXEditor.Forms
 
         private void Offset_Validating(object sender, System.ComponentModel.CancelEventArgs e)
         {
-            ulong dmp = 0;
             string text = ((TextBox)sender).Text.ToUpper();
-            if (text.IndexOf("0X") == 0)
+            ulong dmp;
+            if (text.StartsWith("0X"))
             {
                 try
                 {
@@ -342,17 +345,16 @@ namespace WDBXEditor.Forms
             ((TextBox)sender).Text = dmp.ToString();
         }
 
-        private ulong ParseOffset(string text)
+        private static ulong ParseOffset(string text)
         {
-            ulong dmp;
 
             if (string.IsNullOrWhiteSpace(text)) //Empty string
                 return 0;
 
-            if (ulong.TryParse(text, out dmp)) //Normal number
+            if (ulong.TryParse(text, out ulong dmp)) //Normal number
                 return dmp;
 
-            if (text.IndexOf("0x") == 0 && text.Length > 2) text = text.Substring(2); //Remove hex prefix
+            if (text.StartsWith("0x") && text.Length > 2) text = text[2..]; //Remove hex prefix
             if (ulong.TryParse(text, NumberStyles.HexNumber, null, out dmp)) //Hex formatted number
                 return dmp;
 
@@ -365,7 +367,9 @@ namespace WDBXEditor.Forms
                 return false;
 
             byte[] data = new byte[4096];
-            using (Stream s = new FileStream(process.MainModule.FileName, FileMode.Open, FileAccess.Read))
+
+            // CA1859: Declarado explícitamente como FileStream en lugar de la clase base genérica
+            using (FileStream s = new(process.MainModule.FileName, FileMode.Open, FileAccess.Read))
                 s.Read(data, 0, 4096);
 
             int PE_HEADER_ADDR = BitConverter.ToInt32(data, 0x3C);

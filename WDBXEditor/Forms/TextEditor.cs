@@ -15,10 +15,10 @@ namespace WDBXEditor.Forms
     {
         public string CellValue
         {
-            get { return txtText.Text.Replace(Environment.NewLine,"\n"); }
+            get { return txtText.Text.Replace(Environment.NewLine, "\n"); }
             set
             {
-                txtText.Text = value.Replace("\r\n","\n").Replace("\n",Environment.NewLine);
+                txtText.Text = value.Replace("\r\n", "\n").Replace("\n", Environment.NewLine);
                 txtText.SelectionStart = 0;
                 txtText.SelectionLength = 0;
             }
@@ -29,18 +29,18 @@ namespace WDBXEditor.Forms
             InitializeComponent();
         }
 
-        private void btnClose_Click(object sender, EventArgs e)
+        private void BtnClose_Click(object sender, EventArgs e)
         {
             this.Close();
         }
 
-        private void btnSave_Click(object sender, EventArgs e)
+        private void BtnSave_Click(object sender, EventArgs e)
         {
             this.DialogResult = DialogResult.OK;
             this.Close();
         }
 
-        private void btnFind_Click(object sender, EventArgs e)
+        private void BtnFind_Click(object sender, EventArgs e)
         {
             if (string.IsNullOrEmpty(txtFilter.Text))
                 return;
@@ -48,7 +48,7 @@ namespace WDBXEditor.Forms
             int filterlen = txtFilter.Text.Length;
             int start = txtText.SelectionStart + (txtText.SelectedText.Equals(txtFilter.Text, IGNORECASE) ? filterlen : 0); //Skip currently found if applicable
 
-            StartFind:
+        StartFind:
             var indexof = txtText.Text.IndexOf(txtFilter.Text, start, IGNORECASE);
             if (indexof == -1)
             {
@@ -70,12 +70,12 @@ namespace WDBXEditor.Forms
             }
         }
 
-        private void txtText_Enter(object sender, EventArgs e)
+        private void TxtText_Enter(object sender, EventArgs e)
         {
             this.AcceptButton = null;
         }
 
-        private void txtText_Leave(object sender, EventArgs e)
+        private void TxtText_Leave(object sender, EventArgs e)
         {
             this.AcceptButton = btnSave;
         }

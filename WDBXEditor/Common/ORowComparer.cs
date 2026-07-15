@@ -56,16 +56,10 @@ namespace WDBXEditor.Common
         }
     }
 
-    public class ORow
+    public class ORow(int index, object[] array)
     {
-        public int Index;
-        public object[] Array;
-
-        public ORow(int index, object[] array)
-        {
-            Index = index;
-            Array = array;
-        }
+        public int Index = index;
+        public object[] Array = array;
     }
 
 

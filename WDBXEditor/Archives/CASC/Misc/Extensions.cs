@@ -1,7 +1,7 @@
 ﻿using System;
 using System.IO;
 
-namespace WDBXEditor.Archives.Misc
+namespace WDBXEditor.Archives.CASC.Misc // <-- Corregido para que coincida con la estructura de carpetas
 {
     public static class Extensions
     {

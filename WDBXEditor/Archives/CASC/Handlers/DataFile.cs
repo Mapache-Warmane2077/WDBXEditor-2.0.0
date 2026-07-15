@@ -1,21 +1,16 @@
 ﻿using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
+using WDBXEditor.Archives.CASC.Misc;
 using WDBXEditor.Archives.CASC.Structures;
-using WDBXEditor.Archives.Misc;
 
 namespace WDBXEditor.Archives.CASC.Handlers
 {
-    public class DataFile
+    public class DataFile(Stream data)
     {
-        public readonly BinaryReader readStream;
+        public readonly BinaryReader readStream = new(data);
 
-        static object readLock = new object();
-
-        public DataFile(Stream data)
-        {
-            readStream = new BinaryReader(data);
-        }
+        static readonly object readLock = new();
 
         public static MemoryStream LoadBLTEEntry(IndexEntry idxEntry, BinaryReader readStream = null)
         {
@@ -82,14 +77,12 @@ namespace WDBXEditor.Archives.CASC.Handlers
                     // Compressed
                     else if (formatCode == 0x5A)
                     {
-                        using (var decompressed = new MemoryStream())
-                        {
-                            using (var inflate = new DeflateStream(new MemoryStream(dataBytes, 2, dataBytes.Length - 2), CompressionMode.Decompress))
-                                inflate.CopyTo(decompressed);
+                        using var decompressed = new MemoryStream();
+                        using (var inflate = new DeflateStream(new MemoryStream(dataBytes, 2, dataBytes.Length - 2), CompressionMode.Decompress))
+                            inflate.CopyTo(decompressed);
 
-                            var inflateData = decompressed.ToArray();
-                            data.Write(inflateData, 0, inflateData.Length);
-                        }
+                        var inflateData = decompressed.ToArray();
+                        data.Write(inflateData, 0, inflateData.Length);
                     }
                 }
 

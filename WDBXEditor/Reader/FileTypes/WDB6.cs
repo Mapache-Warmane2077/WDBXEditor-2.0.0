@@ -34,10 +34,10 @@ namespace WDBXEditor.Reader.FileTypes
             if (HasIndexTable)
                 IdIndex = 0; //Ignored if Index Table    
 
-			InternalRecordSize = RecordSize; //RecordSize header field is not right anymore
+            InternalRecordSize = RecordSize; //RecordSize header field is not right anymore
 
             //Gather field structures
-            FieldStructure = new List<FieldStructureEntry>();
+            FieldStructure = [];
             for (int i = 0; i < FieldCount; i++)
             {
                 var field = new FieldStructureEntry(dbReader.ReadInt16(), (ushort)(dbReader.ReadUInt16() + (HasIndexTable ? 4 : 0)));
@@ -49,8 +49,8 @@ namespace WDBXEditor.Reader.FileTypes
 
             if (HasIndexTable)
             {
-				InternalRecordSize += 4;
-				FieldCount++;
+                InternalRecordSize += 4;
+                FieldCount++;
                 FieldStructure.Insert(0, new FieldStructureEntry(0, 0));
 
                 if (FieldCount > 1)
@@ -60,9 +60,9 @@ namespace WDBXEditor.Reader.FileTypes
 
         public new Dictionary<int, byte[]> ReadOffsetData(BinaryReader dbReader, long pos)
         {
-            Dictionary<int, byte[]> CopyTable = new Dictionary<int, byte[]>();
-            List<Tuple<int, short>> offsetmap = new List<Tuple<int, short>>();
-            Dictionary<int, OffsetDuplicate> firstindex = new Dictionary<int, OffsetDuplicate>();
+            Dictionary<int, byte[]> CopyTable = [];
+            List<Tuple<int, short>> offsetmap = [];
+            Dictionary<int, OffsetDuplicate> firstindex = [];
 
             long commonDataTablePos = dbReader.BaseStream.Length - CommonDataTableSize;
             long copyTablePos = commonDataTablePos - CopyTableSize;
@@ -85,21 +85,21 @@ namespace WDBXEditor.Reader.FileTypes
                     //Special case, may contain duplicates in the offset map that we don't want
                     if (CopyTableSize == 0)
                     {
-                        if (!firstindex.ContainsKey(offset))
+                        if (!firstindex.TryGetValue(offset, out OffsetDuplicate value))
                             firstindex.Add(offset, new OffsetDuplicate(offsetmap.Count, firstindex.Count));
                         else
-                            OffsetDuplicates.Add(MinId + i, firstindex[offset].VisibleIndex);
+                            OffsetDuplicates.Add(MinId + i, value.VisibleIndex);
                     }
 
                     offsetmap.Add(new Tuple<int, short>(offset, length));
                 }
             }
 
-			if (HasRelationshipData)
-				dbReader.BaseStream.Position += (MaxId - MinId + 1) * 4;
+            if (HasRelationshipData)
+                dbReader.BaseStream.Position += (MaxId - MinId + 1) * 4;
 
-			//Index table
-			if (HasIndexTable)
+            //Index table
+            if (HasIndexTable)
             {
                 //Offset map alone reads straight into this others may not
                 if (!HasOffsetTable || HasRelationshipData)
@@ -126,17 +126,17 @@ namespace WDBXEditor.Reader.FileTypes
                     IEnumerable<byte> recordbytes = BitConverter.GetBytes(id)
                                                     .Concat(dbReader.ReadBytes(map.Item2));
 
-                    CopyTable.Add(id, recordbytes.ToArray());
+                    CopyTable.Add(id, [.. recordbytes]);
                 }
                 else
                 {
                     dbReader.Scrub(pos + i * RecordSize);
-                    byte[] recordbytes = dbReader.ReadBytes((int)RecordSize).ToArray();
+                    byte[] recordbytes = [.. dbReader.ReadBytes((int)RecordSize)];
 
                     if (HasIndexTable)
                     {
                         IEnumerable<byte> newrecordbytes = BitConverter.GetBytes(m_indexes[i]).Concat(recordbytes);
-                        CopyTable.Add(m_indexes[i], newrecordbytes.ToArray());
+                        CopyTable.Add(m_indexes[i], [.. newrecordbytes]);
                     }
                     else
                     {
@@ -186,7 +186,7 @@ namespace WDBXEditor.Reader.FileTypes
                     short bit = CommonDataBits[type];
                     int size = (32 - bit) >> 3;
 
-                    commondatalookup[i] = new Dictionary<int, byte[]>();
+                    commondatalookup[i] = [];
 
                     //New field not defined in header
                     if (i > FieldStructure.Count - 1)
@@ -229,7 +229,7 @@ namespace WDBXEditor.Reader.FileTypes
                                     zeroData = BitConverter.GetBytes(ushort.Parse(defaultValue));
                                     break;
                                 case 2:
-                                    zeroData = new[] { byte.Parse(defaultValue) };
+                                    zeroData = [byte.Parse(defaultValue)];
                                     break;
                                 case 3:
                                     zeroData = BitConverter.GetBytes(float.Parse(defaultValue));
@@ -241,15 +241,14 @@ namespace WDBXEditor.Reader.FileTypes
                         }
 
                         byte[] currentData = CopyTable[id];
-                        byte[] data = col.ContainsKey(id) ? col[id] : zeroData;
+                        byte[] data = col.TryGetValue(id, out byte[] value) ? value : zeroData;
                         Array.Resize(ref currentData, currentData.Length + data.Length);
                         Array.Copy(data, 0, currentData, field.Offset, data.Length);
                         CopyTable[id] = currentData;
                     }
                 }
 
-                commondatalookup = null;
-				InternalRecordSize = (uint)CopyTable.Values.First().Length;
+                InternalRecordSize = (uint)CopyTable.Values.First().Length;
             }
 
             return CopyTable;
@@ -258,8 +257,8 @@ namespace WDBXEditor.Reader.FileTypes
         public override byte[] ReadData(BinaryReader dbReader, long pos)
         {
             Dictionary<int, byte[]> CopyTable = ReadOffsetData(dbReader, pos);
-            OffsetLengths = CopyTable.Select(x => x.Value.Length).ToArray();
-            return CopyTable.Values.SelectMany(x => x).ToArray();
+            OffsetLengths = [.. CopyTable.Select(x => x.Value.Length)];
+            return [.. CopyTable.Values.SelectMany(x => x)];
         }
         #endregion
 
@@ -305,13 +304,13 @@ namespace WDBXEditor.Reader.FileTypes
 
             for (int i = 0; i < FieldStructure.Count; i++)
             {
-                var field = TableStructure.Fields[i].InternalName;                
+                var field = TableStructure.Fields[i].InternalName;
                 var defaultValue = TableStructure.Fields[i].DefaultValue;
                 var typeCode = Type.GetTypeCode(entry.Data.Columns[field].DataType);
                 var pk = entry.Data.PrimaryKey[0];
 
                 var numberDefault = string.IsNullOrEmpty(defaultValue) ? "0" : defaultValue;
-                Dictionary<int, byte[]> data = new Dictionary<int, byte[]>();
+                Dictionary<int, byte[]> data = [];
                 int padding = 0;
 
                 //Only get data if CommonDataTable

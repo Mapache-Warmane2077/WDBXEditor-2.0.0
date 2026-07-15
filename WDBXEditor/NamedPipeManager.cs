@@ -17,14 +17,14 @@ namespace WDBXEditor
         public event Action<string> ReceiveString;
 
         private const string EXIT_STRING = "[EXIT]";
-        private List<BackgroundWorker> Workers = new List<BackgroundWorker>();
+        private readonly List<BackgroundWorker> Workers = [];
 
         /// <summary>
         /// Starts a pipe server on a new backgroundworker
         /// </summary>
         public void StartServer()
         {
-            BackgroundWorker bw = new BackgroundWorker();
+            BackgroundWorker bw = new();
             Workers.Add(bw);
             bw.WorkerSupportsCancellation = true;
             bw.DoWork += Bw_DoWork;
@@ -39,16 +39,14 @@ namespace WDBXEditor
         /// <param name="e"></param>
         private void Bw_DoWork(object sender, DoWorkEventArgs e)
         {
-            using (var server = new NamedPipeServerStream(NamedPipeName, PipeDirection.InOut, -1))
+            using var server = new NamedPipeServerStream(NamedPipeName, PipeDirection.InOut, -1);
+            try
             {
-                try
-                {
-                    server.WaitForConnection();
-                    using (StreamReader reader = new StreamReader(server))
-                        e.Result = reader.ReadToEnd();
-                }
-                catch { e.Result = ""; }
+                server.WaitForConnection();
+                using StreamReader reader = new(server);
+                e.Result = reader.ReadToEnd();
             }
+            catch { e.Result = ""; }
         }
 
         /// <summary>
@@ -79,7 +77,7 @@ namespace WDBXEditor
         {
             for (int i = 0; i < Workers.Count; i++)
             {
-                BackgroundWorker bw = Workers[i];
+                _ = Workers[i];
                 Write(EXIT_STRING); //Send all pipes the exit command
             }
 
@@ -89,24 +87,20 @@ namespace WDBXEditor
 
         public bool Write(string text, int connectTimeout = 250)
         {
-            using (var client = new NamedPipeClientStream(NamedPipeName))
+            using var client = new NamedPipeClientStream(NamedPipeName);
+            try
             {
-                try
-                {
-                    client.Connect(connectTimeout);
-                    if (!client.IsConnected)
-                        return false;
-
-                    using (StreamWriter writer = new StreamWriter(client))
-                    {
-                        writer.Write(text);
-                        writer.Flush();
-                    }
-                }
-                catch
-                {
+                client.Connect(connectTimeout);
+                if (!client.IsConnected)
                     return false;
-                }
+
+                using StreamWriter writer = new(client);
+                writer.Write(text);
+                writer.Flush();
+            }
+            catch
+            {
+                return false;
             }
             return true;
         }

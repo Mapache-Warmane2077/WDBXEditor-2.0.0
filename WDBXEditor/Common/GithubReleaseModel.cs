@@ -1,41 +1,96 @@
 ﻿using System;
 using System.Collections.Generic;
+using Newtonsoft.Json; // Añadido para poder usar los atributos
 
 namespace WDBXEditor.Common
 {
     public class GithubReleaseModel
     {
-        public string url { get; set; }
-        public string assets_url { get; set; }
-        public string upload_url { get; set; }
-        public string html_url { get; set; }
-        public int id { get; set; }
-        public string tag_name { get; set; }
-        public string target_commitish { get; set; }
-        public bool draft { get; set; }
-        public object author { get; set; } // placeholder
-        public bool prerelease { get; set; }
-        public DateTime created_at { get; set; }
-        public DateTime updated_at { get; set; }
-        public IList<GithubRealaseAssetsModel> assets { get; set; }
-        public string tarball_url { get; set; }
-        public string zipball_url { get; set; }
-        public string body { get; set; }
+        [JsonProperty("url")]
+        public string Url { get; set; }
+
+        [JsonProperty("assets_url")]
+        public string AssetsUrl { get; set; }
+
+        [JsonProperty("upload_url")]
+        public string UploadUrl { get; set; }
+
+        [JsonProperty("html_url")]
+        public string HtmlUrl { get; set; }
+
+        [JsonProperty("id")]
+        public int Id { get; set; }
+
+        [JsonProperty("tag_name")]
+        public string TagName { get; set; }
+
+        [JsonProperty("target_commitish")]
+        public string TargetCommitish { get; set; }
+
+        [JsonProperty("draft")]
+        public bool Draft { get; set; }
+
+        [JsonProperty("author")]
+        public object Author { get; set; } // placeholder
+
+        [JsonProperty("prerelease")]
+        public bool Prerelease { get; set; }
+
+        [JsonProperty("created_at")]
+        public DateTime CreatedAt { get; set; }
+
+        [JsonProperty("updated_at")]
+        public DateTime UpdatedAt { get; set; }
+
+        [JsonProperty("assets")]
+        public IList<GithubRealaseAssetsModel> Assets { get; set; }
+
+        [JsonProperty("tarball_url")]
+        public string TarballUrl { get; set; }
+
+        [JsonProperty("zipball_url")]
+        public string ZipballUrl { get; set; }
+
+        [JsonProperty("body")]
+        public string Body { get; set; }
     }
 
     public class GithubRealaseAssetsModel
     {
-        public string url { get; set; }
-        public int id { get; set; }
-        public string name { get; set; }
-		public object label { get; set; }
-		public object uploader { get; set; } // placeholder
-        public string content_type { get; set; }
-        public string state { get; set; }
-        public int size { get; set; }
-        public int download_count { get; set; }
-        public DateTime created_at { get; set; }
-        public DateTime updated_at { get; set; }
-        public string browser_download_url { get; set; }
+        [JsonProperty("url")]
+        public string Url { get; set; }
+
+        [JsonProperty("id")]
+        public int Id { get; set; }
+
+        [JsonProperty("name")]
+        public string Name { get; set; }
+
+        [JsonProperty("label")]
+        public object Label { get; set; }
+
+        [JsonProperty("uploader")]
+        public object Uploader { get; set; } // placeholder
+
+        [JsonProperty("content_type")]
+        public string ContentType { get; set; }
+
+        [JsonProperty("state")]
+        public string State { get; set; }
+
+        [JsonProperty("size")]
+        public int Size { get; set; }
+
+        [JsonProperty("download_count")]
+        public int DownloadCount { get; set; }
+
+        [JsonProperty("created_at")]
+        public DateTime CreatedAt { get; set; }
+
+        [JsonProperty("updated_at")]
+        public DateTime UpdatedAt { get; set; }
+
+        [JsonProperty("browser_download_url")]
+        public string BrowserDownloadUrl { get; set; }
     }
 }
