@@ -60,6 +60,7 @@ namespace AdvancedDataGridView
         private string sortString = string.Empty;
         private string filterString = string.Empty;
         private object[] _copydata;
+        private bool isCutOperation = false;
 
         // Se cambió el nombre para que inicie con mayúscula.
         // Al llamarse originalmente "InternalPrimaryKey" y devolver "PrimaryKey",
@@ -459,6 +460,214 @@ namespace AdvancedDataGridView
                 }
             }
         }
+        #region Características Estilo Excel (Ctrl+X, Ctrl+D, Ctrl+V)
+
+        // Interceptamos las teclas antes de que el DataGridView las procese de forma nativa
+        // Interceptamos las teclas antes de que el DataGridView las procese de forma nativa
+        protected override bool ProcessCmdKey(ref Message msg, Keys keyData)
+        {
+            // Ctrl + C: Copiar normal (Reseteamos la bandera de corte)
+            if (keyData == (Keys.Control | Keys.C))
+            {
+                isCutOperation = false;
+                return base.ProcessCmdKey(ref msg, keyData); // Dejamos que haga su copia normal
+            }
+            // Ctrl + X: Cortar
+            else if (keyData == (Keys.Control | Keys.X))
+            {
+                CortarCeldas();
+                return true;
+            }
+            // Ctrl + D: Duplicar fila entera (estilo base de datos)
+            else if (keyData == (Keys.Control | Keys.D))
+            {
+                DuplicarFila();
+                return true;
+            }
+            // Ctrl + V: Pegado inteligente
+            else if (keyData == (Keys.Control | Keys.V))
+            {
+                if (this.IsCurrentCellInEditMode)
+                    return base.ProcessCmdKey(ref msg, keyData);
+
+                PegarEstiloExcel();
+                return true;
+            }
+
+            return base.ProcessCmdKey(ref msg, keyData);
+        }
+
+        private void CortarCeldas()
+        {
+            if (this.SelectedCells.Count == 0) return;
+
+            // 1. Copiar los datos seleccionados al portapapeles
+            DataObject dataObj = this.GetClipboardContent();
+            if (dataObj != null)
+            {
+                Clipboard.SetDataObject(dataObj);
+                isCutOperation = true; // <-- ACTIVAMOS LA BANDERA AQUÍ
+            }
+
+            // 2. Borrar el contenido inyectando el valor por defecto correcto de WoW
+            foreach (DataGridViewCell cell in this.SelectedCells)
+            {
+                if (!cell.ReadOnly && !cell.OwningColumn.ReadOnly)
+                {
+                    Type type = cell.ValueType;
+
+                    if (type == typeof(string))
+                    {
+                        cell.Value = string.Empty;
+                    }
+                    else if (type == typeof(bool))
+                    {
+                        cell.Value = false;
+                    }
+                    else if (type != null && type.IsValueType)
+                    {
+                        cell.Value = Activator.CreateInstance(type);
+                    }
+                    else
+                    {
+                        cell.Value = DBNull.Value;
+                    }
+                }
+            }
+        }
+
+        private void DuplicarFila()
+        {
+            if (this.CurrentRow == null || this.CurrentRow.IsNewRow) return;
+
+            // Obtenemos el acceso al origen de datos real de WDBXEditor
+            if (this.DataSource is BindingSource bs && bs.DataSource is DataTable dt)
+            {
+                this.EndEdit();
+                bs.EndEdit();
+
+                // Obtener datos de la fila original
+                DataRowView currentRowView = this.CurrentRow.DataBoundItem as DataRowView;
+                if (currentRowView == null) return;
+                DataRow currentRow = currentRowView.Row;
+
+                DataRow newRow = dt.NewRow();
+                DataColumn pk = dt.PrimaryKey.Length > 0 ? dt.PrimaryKey[0] : null;
+
+                // 1. Auto-calcular el próximo ID para la llave primaria (PK)
+                if (pk != null && (pk.DataType == typeof(int) || pk.DataType == typeof(uint) ||
+                                   pk.DataType == typeof(long) || pk.DataType == typeof(ulong)))
+                {
+                    long maxId = -1;
+                    foreach (DataRow r in dt.Rows)
+                    {
+                        if (r.RowState != DataRowState.Deleted)
+                        {
+                            long currentId = Convert.ToInt64(r[pk]);
+                            if (currentId > maxId) maxId = currentId;
+                        }
+                    }
+                    // Le asignamos el ID más alto + 1
+                    newRow[pk] = Convert.ChangeType(maxId + 1, pk.DataType);
+                }
+
+                // 2. Copiar el resto de datos de las columnas
+                for (int i = 0; i < dt.Columns.Count; i++)
+                {
+                    if (pk != null && dt.Columns[i] == pk) continue; // Evitamos pisar el nuevo ID
+                    newRow[i] = currentRow[i];
+                }
+
+                // 3. Agregar la fila clonada al final de la base de datos
+                dt.Rows.Add(newRow);
+
+                // 4. Seleccionar la nueva fila para enfocar la vista hacia abajo
+                this.ClearSelection();
+                int newIndex = this.Rows.Count - 1;
+
+                // Las grillas de Windows Forms a veces tienen una fila fantasma al final para inserciones
+                if (this.Rows[newIndex].IsNewRow && newIndex > 0)
+                    newIndex--;
+
+                this.FirstDisplayedScrollingRowIndex = newIndex;
+                this.Rows[newIndex].Selected = true;
+                this.CurrentCell = this.Rows[newIndex].Cells[0];
+            }
+        }
+
+        private void PegarEstiloExcel()
+        {
+            if (this.CurrentCell == null) return;
+
+            string textoPortapapeles = Clipboard.GetText();
+            if (string.IsNullOrEmpty(textoPortapapeles)) return;
+
+            // Dividir filas por salto de línea
+            string[] filas = textoPortapapeles.Split(new[] { "\r\n", "\n", "\r" }, StringSplitOptions.None);
+
+            int filaInicial = this.CurrentCell.RowIndex;
+            int colInicial = this.CurrentCell.ColumnIndex;
+
+            // Recorrer filas del portapapeles
+            for (int i = 0; i < filas.Length; i++)
+            {
+                // Omitir la última fila si está vacía (Excel suele añadir un salto de línea extra)
+                if (i == filas.Length - 1 && string.IsNullOrEmpty(filas[i])) continue;
+
+                int filaActual = filaInicial + i;
+                if (filaActual >= this.Rows.Count) break; // Límite inferior de la tabla
+
+                // Dividir celdas por tabulación
+                string[] celdasTexto = filas[i].Split('\t');
+                int colActual = colInicial;
+
+                // Recorrer celdas del portapapeles
+                for (int j = 0; j < celdasTexto.Length; j++)
+                {
+                    // Saltar columnas ocultas en la tabla de destino
+                    while (colActual < this.Columns.Count && !this.Columns[colActual].Visible)
+                    {
+                        colActual++;
+                    }
+
+                    if (colActual >= this.Columns.Count) break; // Límite derecho de la tabla
+
+                    DataGridViewCell celdaDestino = this.Rows[filaActual].Cells[colActual];
+
+                    if (!celdaDestino.ReadOnly && !celdaDestino.OwningColumn.ReadOnly)
+                    {
+                        try
+                        {
+                            // Lógica compatible con tus columnas Hexadecimales ("0x")
+                            string tag = celdaDestino.OwningColumn.DefaultCellStyle.Tag?.ToString() ?? "";
+                            if (tag.StartsWith('X') && celdasTexto[j].StartsWith("0x"))
+                            {
+                                string hexVal = celdasTexto[j].Substring(2);
+                                if (long.TryParse(hexVal, NumberStyles.HexNumber, null, out long l))
+                                    celdaDestino.Value = Convert.ChangeType(l, celdaDestino.ValueType);
+                            }
+                            else
+                            {
+                                // Conversión normal dependiendo del tipo de dato de la columna (int, float, string)
+                                celdaDestino.Value = Convert.ChangeType(celdasTexto[j], celdaDestino.ValueType);
+                            }
+                        }
+                        catch
+                        {
+                            // Si el texto no se puede convertir al tipo numérico/dato de la celda, se ignora esa celda
+                        }
+                    }
+                    colActual++; // Avanzar a la siguiente columna
+                }
+            }
+            if (isCutOperation)
+            {
+                Clipboard.Clear();
+                isCutOperation = false;
+            }
+        }
+
+        #endregion
 
         internal class MinMax
         {
